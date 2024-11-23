@@ -4,7 +4,7 @@ import Home from "./pages/Home";
 import NBAHome from "./pages/NBA/Home";
 import NFLHome from "./pages/NFL/Home";
 import MLBHome from "./pages/MLB/Home";
-import Profile from "./pages/User/Profile";
+import Profile from "./pages/User/profile";
 import SignIn from "./pages/User/sign-in";
 import SignUp from "./pages/User/sign-up";
 import AuthProvider from "./providers/AuthProvider";
