@@ -1,0 +1,113 @@
+/* General layout */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+  }
+  
+  .home-title {
+    text-align: center;
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 10px;
+  }
+  
+  .home-text {
+    text-align: center;
+    font-size: 16px;
+    color: #555;
+    margin-bottom: 20px;
+  }
+  
+  /* Page Layout */
+  .page-layout {
+    display: flex;
+    align-items: flex-start; /* Align items to the top */
+    justify-content: center; /* Center align the entire layout */
+    margin: 0 auto;
+    max-width: 1200px; /* Define a maximum width for the container */
+    gap: 40px; /* Add larger spacing between the cards and news sections */
+    padding: 20px;
+  }
+  
+  /* Cards Section (Left Side) */
+  .cards-section {
+    display: flex;
+    flex-direction: column; /* Stack the cards vertically */
+    gap: 20px; /* Add spacing between cards */
+    flex-shrink: 0; /* Prevent the cards section from resizing */
+  }
+  
+  .card {
+    background: #f9f9f9;
+    border-radius: 10px;
+    padding: 20px;
+    width: 200px;
+    text-align: center;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .card a {
+    color: #007bff;
+    text-decoration: none;
+  }
+  
+  .card a:hover {
+    text-decoration: underline;
+  }
+  
+  /* News Section Layout */
+  .news-section {
+    flex: 1; /* Allow the news section to take up available space */
+    max-width: 800px; /* Constrain the news section width */
+    margin: 20px 0;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Individual News Card */
+  .news-card {
+    display: flex; /* Align image and content side by side */
+    align-items: flex-start; /* Align items to the top */
+    gap: 20px; /* Add space between the image and the text */
+    margin-bottom: 20px;
+    padding: 15px;
+    border-bottom: 1px solid #ddd; /* Add a separator between news cards */
+  }
+  
+  /* News Image */
+  .news-image {
+    width: 150px; /* Fixed width for the image */
+    height: auto; /* Maintain aspect ratio */
+    border-radius: 8px; /* Rounded corners */
+    object-fit: cover; /* Crop the image nicely */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for the image */
+  }
+  
+  /* News Content */
+  .news-content {
+    flex: 1; /* Allow the text to take up remaining space */
+  }
+  
+  /* News Title */
+  .news-title {
+    font-size: 18px;
+    color: #007bff;
+    text-decoration: none;
+    margin: 0;
+  }
+  
+  .news-title:hover {
+    text-decoration: underline;
+  }
+  
+  /* News Description */
+  .news-description {
+    font-size: 14px;
+    color: #555;
+    margin-top: 5px;
+    line-height: 1.6; /* Add spacing between lines for better readability */
+  }
+  

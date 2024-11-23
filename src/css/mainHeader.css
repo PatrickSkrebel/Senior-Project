@@ -1,0 +1,48 @@
+/* src/css/mainHeader.css */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #1e1e1e;
+  padding: 10px 20px;
+  color: #ffffff;
+}
+
+.header__title {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.header__nav {
+  display: flex;
+  gap: 30px;
+}
+
+.header__link {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 28px;
+  transition: color 0.3s ease;
+}
+
+.header__link:hover {
+  text-decoration: underline;
+}
+
+/* Hover styles for specific links */
+.header__link--nfl:hover {
+  color: green;
+}
+
+.header__link--mlb:hover {
+  color: blue;
+}
+
+.header__link--nba:hover {
+  color: red;
+}
+
+.header__profile {
+  cursor: pointer;
+}
