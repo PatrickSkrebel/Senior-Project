@@ -11,9 +11,12 @@ const Home = () => {
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        const response = await axios.get('/api/fetchNews', {
+        const response = await axios.get('https://newsapi.org/v2/everything', {
           params: {
             q: 'NBA, MLB, NFL', // Search term for sports news
+            apiKey: 'f57f4b4966f4492c85ae9591b2e0ecbb', // Replace with your actual API key
+            language: 'en',
+            pageSize: 5, // Limit to 5 articles
           },
         });
         setArticles(response.data.articles);
@@ -21,10 +24,10 @@ const Home = () => {
         console.error('Error fetching news articles:', error.message);
       }
     };
-  
+    
+
     fetchNews();
   }, []);
-  
 
   return (
     <div>
