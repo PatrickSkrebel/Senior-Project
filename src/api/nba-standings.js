@@ -1,4 +1,3 @@
-// api/nba-standings.js
 import axios from 'axios';
 
 export default async function handler(req, res) {
@@ -13,6 +12,7 @@ export default async function handler(req, res) {
     );
     res.status(200).json(response.data);
   } catch (error) {
+    console.error(error.message);
     res.status(error.response?.status || 500).json({ error: error.message });
   }
 }

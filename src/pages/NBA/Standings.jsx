@@ -8,18 +8,19 @@ export default function NBAStandings() {
 
   useEffect(() => {
     const fetchStandings = async () => {
-      console.log('Fetching NBA standings...');
-      try {
-        const response = await axios.get('/api/nba-standings');
-
-        setStandings(response.data.conferences);
-        setLoading(false);
-      } catch (err) {
-        console.error('Error fetching NBA standings:', err);
-        setError('Failed to fetch NBA standings');
-        setLoading(false);
-      }
-    };
+        try {
+          console.log("Fetching NBA standings...");
+          const response = await axios.get('/api/nba-standings'); // Vercel's API route
+          console.log("Response Data:", response.data);
+          setStandings(response.data.conferences || []); // Handle undefined conferences
+          setLoading(false);
+        } catch (err) {
+          console.error("Error fetching NBA standings:", err.message);
+          setError("Failed to fetch NBA standings");
+          setLoading(false);
+        }
+      };
+      
 
     fetchStandings();
   }, []);
