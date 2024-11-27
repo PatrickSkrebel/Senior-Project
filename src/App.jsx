@@ -10,6 +10,8 @@ import SignUp from "./pages/User/sign-up";
 import AuthProvider from "./providers/AuthProvider";
 import ErrorBoundary from "./providers/ErrorBoundary";
 
+import Standings from "./pages/NBA/Standings";
+
 const App = () => {
   return (
     <>
@@ -30,8 +32,8 @@ const App = () => {
           <Route path="/mlb" element={<MLBHome />} />
 
           {/* All screens for NBA (Commented out for future implementation) */}
-          {/*
-          <Route path="/nba/standings" element={<Standings />} />
+         
+          <Route path="/nba/Standings" element={<Standings />} /> {/*
           <Route path="/nba/league-leaders" element={<LeagueLeaders />} />
           <Route path="/nba/fantasy" element={<Fantasy />} />
           <Route path="/nba/games" element={<Games />} />

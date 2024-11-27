@@ -1,0 +1,36 @@
+.standings-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+  }
+  
+  .conference {
+    margin-bottom: 20px;
+  }
+  
+  .division {
+    margin-bottom: 10px;
+  }
+  
+  .standings-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+  
+  .standings-table th,
+  .standings-table td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: center;
+  }
+  
+  .standings-table th {
+    background-color: #f4f4f4;
+  }
+  
+  .standings-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  
