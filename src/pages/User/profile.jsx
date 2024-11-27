@@ -8,23 +8,38 @@ import Preset from '../../assets/Present-Icon.jpg';
 import Icon1 from '../../assets/Default-Icon1.png';
 import Icon2 from '../../assets/Default-Icon2.png';
 
-const defaultIcons = [
-  Icon1,
-  Icon2,
-]; // Replace with actual paths to your default icons
-
+const defaultIcons = [Icon1, Icon2]; // Replace with actual paths to your default icons
 
 const Profile = () => {
-  const { session, profile, loading } = useAuth();
+  const { session, profile, loading, setProfile } = useAuth(); // Assuming setProfile is exposed in your AuthProvider
   const navigate = useNavigate();
   const [isPopupOpen, setIsPopupOpen] = useState(false); // Popup state
-  //const [customIcon, setCustomIcon] = useState<File | null>(null);
 
+  // Refetch the profile after signing up or if the session changes
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (session) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
 
+        if (error) {
+          console.error('Error fetching profile:', error.message);
+        } else {
+          setProfile(data); // Update the profile in AuthProvider
+        }
+      }
+    };
 
+    fetchProfile();
+  }, [session, setProfile]); // Trigger refetch when session changes
+
+  // Redirect to sign-in if the user is not authenticated
   useEffect(() => {
     if (!loading && !session) {
-      navigate('/user/signin'); // Redirect if not authenticated
+      navigate('/user/signin');
     }
   }, [loading, session, navigate]);
 
@@ -42,44 +57,25 @@ const Profile = () => {
       console.error('Profile is null');
       return;
     }
+
     const { error } = await supabase
       .from('profiles')
       .update({ user_icon: iconUrl })
       .eq('id', profile.id);
-  
+
     if (error) {
       console.error('Error updating user icon:', error.message);
     } else {
       setIsPopupOpen(false);
     }
   };
-  
 
-  if (!profile) {
-    return <p>Loading profile...</p>; // Add a fallback if profile is null
-  }
-  
-
-  if (loading) {
+  if (loading || !profile) {
     return (
       <>
         <Header />
         <div className="profile-container">
-          <p>Loading...</p>
-        </div>
-      </>
-    );
-  }
-
-  if (!profile) {
-    return (
-      <>
-        <Header />
-        <div className="profile-container">
-          <p>No profile data found.</p>
-          <button className="signout-button" onClick={handleSignOut}>
-            Sign Out
-          </button>
+          <p>Loading profile...</p>
         </div>
       </>
     );
@@ -96,11 +92,10 @@ const Profile = () => {
             onClick={() => setIsPopupOpen((prev) => !prev)}
           >
             <img
-              src={Preset} // Ensure fallback icon
-              alt={Preset}
+              src={profile.user_icon || Preset} // Ensure fallback icon
+              alt="Profile Icon"
               className="avatar"
             />
-
           </div>
           <div className="profile-details">
             <div className="profile-item">{profile.username}</div>
@@ -164,7 +159,6 @@ const Profile = () => {
                   />
                 ))}
               </div>
-              
               <button
                 className="close-button"
                 onClick={() => setIsPopupOpen(false)}

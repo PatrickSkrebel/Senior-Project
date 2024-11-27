@@ -48,7 +48,6 @@ const SignUp = () => {
       if (profileError) {
         setError(profileError.message);
       } else {
-        alert('Check your email for confirmation!');
         navigate('/user/profile'); // Redirect to profile page
       }
     }
