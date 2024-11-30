@@ -2,44 +2,39 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
 export default function NBAStandings() {
-  const [standings, setStandings] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [standings, setStandings] = useState([]); // Holds standings data
+  const [loading, setLoading] = useState(true);  // Tracks loading state
+  const [error, setError] = useState('');        // Tracks any error messages
 
   useEffect(() => {
     const fetchStandings = async () => {
-        try {
-          console.log("Fetching NBA standings...");
-          const response = await axios.get('/api/nba-standings'); // Vercel's API route
-          console.log("Response Data:", response.data);
-          setStandings(response.data.conferences || []); // Handle undefined conferences
-          setLoading(false);
-        } catch (err) {
-          console.error("Error fetching NBA standings:", err.message);
-          setError("Failed to fetch NBA standings");
-          setLoading(false);
-        }
-      };
-      
+      console.log('Fetching NBA standings...');
+      try {
+        const response = await axios.get('http://localhost:5000/api/nba-standings');
+
+
+        setStandings(response.data.conferences || []); // Extract conferences data
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching NBA standings:', err.message);
+        setError('Failed to fetch NBA standings');
+        setLoading(false);
+      }
+    };
 
     fetchStandings();
-  }, []);
+  }, []); // Run once on component mount
 
-  if (loading) {
-    return <p>Loading standings...</p>;
-  }
-
-  if (error) {
-    return <p>{error}</p>;
-  }
+  if (loading) return <p>Loading standings...</p>; // Display while loading
+  if (error) return <p>{error}</p>;               // Display error message if fetch fails
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div>
       <h1>NBA Standings</h1>
       {standings.map((conference) => (
-        <div key={conference.id} style={{ marginBottom: '20px' }}>
+        <div key={conference.id}>
           <h2>{conference.name}</h2>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
             <thead>
               <tr>
                 <th style={styles.tableHeader}>Team</th>
@@ -50,19 +45,16 @@ export default function NBAStandings() {
             </thead>
             <tbody>
               {conference.divisions.map((division) =>
-                division.teams.map((team) => {
-                  const winPercentage = (team.wins / (team.wins + team.losses)).toFixed(3);
-                  return (
-                    <tr key={team.id} style={styles.tableRow}>
-                      <td style={styles.tableCell}>
-                        {team.market} {team.name}
-                      </td>
-                      <td style={styles.tableCell}>{team.wins}</td>
-                      <td style={styles.tableCell}>{team.losses}</td>
-                      <td style={styles.tableCell}>{winPercentage}</td>
-                    </tr>
-                  );
-                })
+                division.teams.map((team) => (
+                  <tr key={team.id}>
+                    <td style={styles.tableCell}>
+                      {team.market} {team.name}
+                    </td>
+                    <td style={styles.tableCell}>{team.wins}</td>
+                    <td style={styles.tableCell}>{team.losses}</td>
+                    <td style={styles.tableCell}>{(team.wins / (team.wins + team.losses)).toFixed(3)}</td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
@@ -81,8 +73,5 @@ const styles = {
   tableCell: {
     borderBottom: '1px solid #ccc',
     padding: '10px',
-  },
-  tableRow: {
-    backgroundColor: '#f9f9f9',
   },
 };

@@ -1,9 +1,14 @@
+// server.js
 import express from 'express';
 import axios from 'axios';
+import cors from 'cors';
 
-const router = express.Router();
+const app = express();
+const PORT = 5000;
 
-router.get('/nba-standings', async (req, res) => {
+app.use(cors()); // Allow all origins (for development)
+
+app.get('/api/nba-standings', async (req, res) => {
   try {
     const response = await axios.get(
       'https://api.sportradar.com/nba/trial/v8/en/seasons/2024/REG/standings.json',
@@ -18,4 +23,4 @@ router.get('/nba-standings', async (req, res) => {
   }
 });
 
-export default router;
+app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
