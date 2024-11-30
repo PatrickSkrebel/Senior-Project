@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import NBAHeader from "../../components/nbaHeader";
 
 export default function NBAStandings() {
   const [standings, setStandings] = useState([]); // Holds standings data
@@ -8,10 +9,8 @@ export default function NBAStandings() {
 
   useEffect(() => {
     const fetchStandings = async () => {
-      console.log('Fetching NBA standings...');
       try {
         const response = await axios.get('http://localhost:5000/api/nba-standings');
-
 
         setStandings(response.data.conferences || []); // Extract conferences data
         setLoading(false);
@@ -30,6 +29,7 @@ export default function NBAStandings() {
 
   return (
     <div>
+      <NBAHeader />
       <h1>NBA Standings</h1>
       {standings.map((conference) => (
         <div key={conference.id}>
