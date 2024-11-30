@@ -8,7 +8,6 @@ export default function NBAStandings() {
   const [loading, setLoading] = useState(true);  // Tracks loading state
   const [error, setError] = useState('');        // Tracks any error messages
   const [view, setView] = useState('league');    // Tracks current view: league, conference, division
-  const [filteredData, setFilteredData] = useState([]); // Holds filtered data for the selected view
 
   useEffect(() => {
     const fetchStandings = async () => {
@@ -33,8 +32,28 @@ export default function NBAStandings() {
         // Sort teams globally by win percentage (descending)
         const sortedTeams = allTeams.sort((a, b) => b.winPercentage - a.winPercentage);
 
-        setTeams({ all: sortedTeams, conferences: response.data.conferences });
-        setFilteredData(sortedTeams); // Default to whole league
+        // Add conference and division groupings
+        const conferences = response.data.conferences.map((conference) => ({
+          ...conference,
+          teams: conference.divisions.flatMap((division) =>
+            division.teams.map((team) => ({
+              ...team,
+              winPercentage: team.wins / (team.wins + team.losses),
+            }))
+          ).sort((a, b) => b.winPercentage - a.winPercentage), // Sort within conference
+        }));
+
+        const divisions = response.data.conferences.flatMap((conference) =>
+          conference.divisions.map((division) => ({
+            ...division,
+            teams: division.teams.map((team) => ({
+              ...team,
+              winPercentage: team.wins / (team.wins + team.losses),
+            })).sort((a, b) => b.winPercentage - a.winPercentage), // Sort within division
+          }))
+        );
+
+        setTeams({ league: sortedTeams, conferences, divisions });
         setLoading(false);
       } catch (err) {
         console.error('Error fetching NBA standings:', err.message);
@@ -46,16 +65,8 @@ export default function NBAStandings() {
     fetchStandings();
   }, []);
 
-  // Handle dropdown selection
   const handleViewChange = (selectedView) => {
     setView(selectedView);
-    if (selectedView === 'league') {
-      setFilteredData(teams.all);
-    } else if (selectedView === 'conference') {
-      setFilteredData(teams.conferences);
-    } else if (selectedView === 'division') {
-      setFilteredData(teams.conferences);
-    }
   };
 
   if (loading) return <p className="loading-message">Loading standings...</p>;
@@ -81,27 +92,23 @@ export default function NBAStandings() {
           </select>
         </div>
 
-        {/* Render data based on selected view */}
+        {/* Render League View */}
         {view === 'league' && (
           <table className="standings-table">
             <thead>
               <tr>
                 <th>Rank</th>
                 <th>Team</th>
-                <th>Conference</th>
-                <th>Division</th>
                 <th>Wins</th>
                 <th>Losses</th>
                 <th>Win Percentage</th>
               </tr>
             </thead>
             <tbody>
-              {filteredData.map((team, index) => (
+              {teams.league.map((team, index) => (
                 <tr key={team.id}>
                   <td>{index + 1}</td>
                   <td>{team.name}</td>
-                  <td>{team.conference}</td>
-                  <td>{team.division}</td>
                   <td>{team.wins}</td>
                   <td>{team.losses}</td>
                   <td>{(team.winPercentage * 100).toFixed(1)}%</td>
@@ -111,13 +118,15 @@ export default function NBAStandings() {
           </table>
         )}
 
+        {/* Render Conference View */}
         {view === 'conference' &&
-          filteredData.map((conference) => (
+          teams.conferences.map((conference) => (
             <div key={conference.id} className="conference">
               <h2>{conference.name}</h2>
               <table className="standings-table">
                 <thead>
                   <tr>
+                    <th>Rank</th>
                     <th>Team</th>
                     <th>Wins</th>
                     <th>Losses</th>
@@ -125,49 +134,49 @@ export default function NBAStandings() {
                   </tr>
                 </thead>
                 <tbody>
-                  {conference.divisions.flatMap((division) =>
-                    division.teams.map((team) => (
-                      <tr key={team.id}>
-                        <td>{team.market} {team.name}</td>
-                        <td>{team.wins}</td>
-                        <td>{team.losses}</td>
-                        <td>{(team.wins / (team.wins + team.losses)).toFixed(3)}</td>
-                      </tr>
-                    ))
-                  )}
+                  {conference.teams.map((team, index) => (
+                    <tr key={team.id}>
+                      <td>{index + 1}</td>
+                      <td>{team.market} {team.name}</td>
+                      <td>{team.wins}</td>
+                      <td>{team.losses}</td>
+                      <td>{(team.winPercentage * 100).toFixed(1)}%</td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
           ))}
 
+        {/* Render Division View */}
         {view === 'division' &&
-          filteredData.map((conference) =>
-            conference.divisions.map((division) => (
-              <div key={division.id} className="division">
-                <h2>{division.name} - {conference.name}</h2>
-                <table className="standings-table">
-                  <thead>
-                    <tr>
-                      <th>Team</th>
-                      <th>Wins</th>
-                      <th>Losses</th>
-                      <th>Win Percentage</th>
+          teams.divisions.map((division) => (
+            <div key={division.id} className="division">
+              <h2>{division.name} Division</h2>
+              <table className="standings-table">
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Team</th>
+                    <th>Wins</th>
+                    <th>Losses</th>
+                    <th>Win Percentage</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {division.teams.map((team, index) => (
+                    <tr key={team.id}>
+                      <td>{index + 1}</td>
+                      <td>{team.market} {team.name}</td>
+                      <td>{team.wins}</td>
+                      <td>{team.losses}</td>
+                      <td>{(team.winPercentage * 100).toFixed(1)}%</td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {division.teams.map((team) => (
-                      <tr key={team.id}>
-                        <td>{team.market} {team.name}</td>
-                        <td>{team.wins}</td>
-                        <td>{team.losses}</td>
-                        <td>{(team.wins / (team.wins + team.losses)).toFixed(3)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ))
-          )}
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ))}
       </div>
     </>
   );
