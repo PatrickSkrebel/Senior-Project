@@ -6,8 +6,9 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://statz-wiz.vercel.app/', // Replace with your Vercel URL
+        target: 'http://localhost:5000', // Local API server
         changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''), // Remove '/api' prefix
       },
     },
   },
