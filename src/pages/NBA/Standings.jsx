@@ -12,8 +12,9 @@ export default function NBAStandings() {
   useEffect(() => {
     const fetchStandings = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/nba-standings');
-
+        const response = await axios.get('https://your-vercel-project.vercel.app/api/nba-standings'); // Use deployed URL
+        setStandings(response.data.conferences || []);
+        setLoading(false);
         // Flatten all teams across divisions and conferences
         const allTeams = response.data.conferences.flatMap((conference) =>
           conference.divisions.flatMap((division) =>
