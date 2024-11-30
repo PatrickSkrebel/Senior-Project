@@ -1,20 +1,13 @@
-// server.js
 import express from 'express';
 import axios from 'axios';
-import cors from 'cors';
 
 const app = express();
-const PORT = 5000;
-
-app.use(cors()); // Allow all origins (for development)
 
 app.get('/api/nba-standings', async (req, res) => {
   try {
     const response = await axios.get(
       'https://api.sportradar.com/nba/trial/v8/en/seasons/2024/REG/standings.json',
-      {
-        params: { api_key: 'IR2QSHcI7Ue4QgoE8dyx0Cw0mVXHKYEdoIhGJRME' },
-      }
+      { params: { api_key: 'IR2QSHcI7Ue4QgoE8dyx0Cw0mVXHKYEdoIhGJRME' } }
     );
     res.json(response.data);
   } catch (error) {
@@ -23,4 +16,5 @@ app.get('/api/nba-standings', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+// Export the app as a handler for Vercel
+export default app;
