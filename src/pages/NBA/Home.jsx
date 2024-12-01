@@ -5,6 +5,9 @@ import "../../css/nbaHome.css";
 
 const NBAHome = () => {
   const [articles, setArticles] = useState([]);
+  const [dailyGames, setDailyGames] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchNews = async () => {
@@ -26,11 +29,62 @@ const NBAHome = () => {
     fetchNews();
   }, []);
 
+
+  useEffect(() => {
+    const fetchDailyGames = async () => {
+      const today = new Date(); // Get today's date
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+
+      try {
+        const response = await axios.get('http://localhost:5000/api/nba-daily-games', {
+          params: { year, month, day },
+        });
+        setDailyGames(response.data.games || []);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching NBA daily games:", error.message);
+        setError('Failed to fetch NBA daily games');
+        setLoading(false);
+      }
+    };
+
+    fetchDailyGames();
+  }, []);
+
+  if (loading) return <p>Loading daily games...</p>;
+  if (error) return <p>{error}</p>;
+
+  const fetchBoxscore = async (gameId) => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/nba-game-boxscore', {
+        params: { gameId },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching game boxscore:", error.message);
+    }
+  };
+
   return (
     <div>
       <NBAHeader />
-      <h1 className="home-title">NBA Home Page</h1>
-      <p className="home-text">This page will display all NBA news</p>
+      <div>
+
+      <div className="games-container">
+        {dailyGames.map((game) => (
+          <div key={game.id} className="game-card">
+            <div className="team-info">
+              <p>{game.away.alias} <strong>{game.away_points ?? '-'}</strong></p>
+              <p>vs</p>
+              <p>{game.home.alias} <strong>{game.home_points ?? '-'}</strong></p>
+            </div>
+            <p className="game-status">{game.status}</p>
+          </div>
+        ))}
+      </div>
+    </div>
 
       <div className="page-layout">
         {/* Cards Section */}
