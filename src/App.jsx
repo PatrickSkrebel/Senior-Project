@@ -12,6 +12,7 @@ import ErrorBoundary from "./providers/ErrorBoundary";
 
 import Standings from "./pages/NBA/Standings";
 import LeagueLeaders from "./pages/NBA/LeagueLeaders";
+import Fantasy from './pages/NBA/Fantasy';
 
 const App = () => {
   return (
@@ -35,8 +36,8 @@ const App = () => {
           {/* All screens for NBA (Commented out for future implementation) */}
          
           <Route path="/nba/Standings" element={<Standings />} /> 
-          <Route path="/nba/league-leaders" element={<LeagueLeaders />} />{/*
-          <Route path="/nba/fantasy" element={<Fantasy />} />
+          <Route path="/nba/league-leaders" element={<LeagueLeaders />} />
+          <Route path="/nba/fantasy" element={<Fantasy />} />{/*
           <Route path="/nba/games" element={<Games />} />
           <Route path="/nba/teams/:teamId" element={<Team />} />
           */}
