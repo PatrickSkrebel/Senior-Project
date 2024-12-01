@@ -29,7 +29,7 @@ const NBAHome = () => {
     fetchNews();
   }, []);
 
-
+{/* 
   useEffect(() => {
     const fetchDailyGames = async () => {
       const today = new Date(); // Get today's date
@@ -66,14 +66,14 @@ const NBAHome = () => {
       console.error("Error fetching game boxscore:", error.message);
     }
   };
-
+*/}
   
 
   return (
     <div>
       <NBAHeader />
       <div>
-
+      {/* 
       <div className="games-container">
         {dailyGames.map((game) => (
           <div key={game.id} className="game-card">
@@ -121,7 +121,7 @@ const NBAHome = () => {
             </p>
           </div>
         </div>
-
+        */}
         {/* News Section */}
         <div className="news-section">
           <h1 className="home-title">Latest Sports News</h1>
