@@ -89,7 +89,7 @@ const NBAHome = () => {
     </div>
 
       <div className="page-layout">
-        {/* Cards Section */}
+        {/* Cards Section 
         <div className="cards-section">
           <div className="card shadow">
             <h1 className="home-title">NBA</h1>
