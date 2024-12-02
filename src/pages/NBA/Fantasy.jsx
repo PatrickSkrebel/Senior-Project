@@ -15,6 +15,63 @@ const Fantasy = () => {
     const [cursor, setCursor] = useState(0);      
     const [selectedValue, setSelectedValue] = useState('');
 
+    const fetchStandings = async (selectedSeason) => {
+        setLoading(true);
+        try {
+          const response = await axios.get(`http://localhost:5000/api/nba-standings?season=${selectedSeason}`);
+          
+          // Flatten all teams across divisions and conferences
+          const allTeams = response.data.conferences.flatMap((conference) =>
+            conference.divisions.flatMap((division) =>
+              division.teams.map((team) => ({
+                id: team.id,
+                name: `${team.market} ${team.name}`,
+                wins: team.wins,
+                losses: team.losses,
+                winPercentage: team.wins / (team.wins + team.losses),
+                conference: conference.name,
+                division: division.name,
+              }))
+            )
+          );
+    
+          // Sort teams globally by win percentage (descending)
+          const sortedTeams = allTeams.sort((a, b) => b.winPercentage - a.winPercentage);
+    
+          // Add conference and division groupings
+          const conferences = response.data.conferences.map((conference) => ({
+            ...conference,
+            teams: conference.divisions.flatMap((division) =>
+              division.teams.map((team) => ({
+                ...team,
+                winPercentage: team.wins / (team.wins + team.losses),
+              }))
+            ).sort((a, b) => b.winPercentage - a.winPercentage), // Sort within conference
+          }));
+    
+          const divisions = response.data.conferences.flatMap((conference) =>
+            conference.divisions.map((division) => ({
+              ...division,
+              teams: division.teams.map((team) => ({
+                ...team,
+                winPercentage: team.wins / (team.wins + team.losses),
+              })).sort((a, b) => b.winPercentage - a.winPercentage), // Sort within division
+            }))
+          );
+    
+          setTeams({ league: sortedTeams, conferences, divisions });
+          setLoading(false);
+        } catch (err) {
+          console.error('Error fetching NBA standings:', err.message);
+          setError('Failed to fetch NBA standings');
+          setLoading(false);
+        }
+      };
+    
+      useEffect(() => {
+        fetchStandings(season);
+      }, [season]); // Refetch standings when the season changes
+    
 
     useEffect(() => {
         const fetchPlayers = async () => {
@@ -33,8 +90,6 @@ const Fantasy = () => {
           }
 
         };
-
-      
         fetchPlayers();
 
       }, [playerCount, currentPage]); // Dependency on currentPage to refetch when it changes

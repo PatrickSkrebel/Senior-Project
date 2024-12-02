@@ -14,7 +14,7 @@ export default function NBAStandings() {
   const fetchStandings = async (selectedSeason) => {
     setLoading(true);
     try {
-      const response = await axios.get(`http://localhost:5000/api/nba-standings?season=${selectedSeason}`);
+      const response = await axios.get(`http://localhost:5000/api/nba-standings`);
       
       // Flatten all teams across divisions and conferences
       const allTeams = response.data.conferences.flatMap((conference) =>
