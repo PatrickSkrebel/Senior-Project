@@ -104,9 +104,35 @@
   outline: none;
 }
 
+.standings-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+}
+
+.standings-table th, .standings-table td {
+  padding: 10px;
+  text-align: left;
+  border: 1px solid #ddd;
+}
+
 .team-logo {
   width: 30px;
   height: 30px;
-  object-fit: contain;
+  margin-right: 10px;
+  margin-left: 5px;
+  vertical-align: middle;
 }
 
+.team-cell {
+  display: flex;
+  align-items: center;
+}
+
+.conference-section, .division-section {
+  margin: 20px 0;
+}
+
+h2 {
+  margin-bottom: 10px;
+}

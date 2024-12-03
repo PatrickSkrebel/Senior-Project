@@ -4,7 +4,7 @@ import NBAHeader from "../../components/nbaHeader";
 import "../../css/nbaStandings.css";
 
 export default function NBAStandings() {
-  const [teams, setTeams] = useState({ league: [] });
+  const [teams, setTeams] = useState({ league: [], conferences: {}, divisions: {} });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [view, setView] = useState("league");
@@ -42,9 +42,26 @@ export default function NBAStandings() {
         winStreak: team.winStreak,
       }));
 
-      const sortedTeams = standings.sort((a, b) => b.winPercentage - a.winPercentage);
+      // Organize data by conferences and divisions
+      const conferences = standings.reduce((acc, team) => {
+        const confName = team.conference;
+        if (!acc[confName]) acc[confName] = [];
+        acc[confName].push(team);
+        return acc;
+      }, {});
 
-      setTeams({ league: sortedTeams });
+      const divisions = standings.reduce((acc, team) => {
+        const divName = team.division;
+        if (!acc[divName]) acc[divName] = [];
+        acc[divName].push(team);
+        return acc;
+      }, {});
+
+      setTeams({
+        league: standings.sort((a, b) => b.winPercentage - a.winPercentage),
+        conferences,
+        divisions,
+      });
       setLoading(false);
     } catch (err) {
       console.error("Error fetching NBA standings:", err.message);
@@ -82,8 +99,8 @@ export default function NBAStandings() {
               className="dropdown-select"
             >
               <option value="league">Entire League</option>
-              <option value="conference">Conference</option>
-              <option value="division">Division</option>
+              <option value="conference">Conferences</option>
+              <option value="division">Divisions</option>
             </select>
           </div>
           <div className="dropdown">
@@ -96,7 +113,7 @@ export default function NBAStandings() {
               onChange={handleSeasonChange}
               className="dropdown-select"
             >
-              {Array.from({ length: 2024 - 2013 + 1 }, (_, i) => {
+              {Array.from({ length: 2024 - 2019 + 1 }, (_, i) => {
                 const startYear = 2024 - i;
                 const endYear = String(startYear + 1).slice(-2);
                 return (
@@ -109,13 +126,12 @@ export default function NBAStandings() {
           </div>
         </div>
 
+        {/* League View */}
         {view === "league" && teams.league.length > 0 && (
           <table className="standings-table">
             <thead>
               <tr>
-                <th>Rank</th>
                 <th>Team</th>
-                <th>Logo</th>
                 <th>Wins</th>
                 <th>Losses</th>
                 <th>Win %</th>
@@ -126,10 +142,10 @@ export default function NBAStandings() {
             <tbody>
               {teams.league.map((team, index) => (
                 <tr key={team.id}>
-                  <td>{index + 1}</td>
-                  <td>{team.name}</td>
                   <td>
-                    <img src={team.logo} alt={team.name} className="team-logo" />
+                    {index + 1}
+                    <img src={team.logo} className="team-logo" />
+                    {team.name}
                   </td>
                   <td>{team.wins}</td>
                   <td>{team.losses}</td>
@@ -142,6 +158,84 @@ export default function NBAStandings() {
               ))}
             </tbody>
           </table>
+        )}
+
+        {/* Conference View */}
+        {view === "conference" && Object.keys(teams.conferences).length > 0 && (
+          <div>
+            {Object.entries(teams.conferences).map(([confName, confTeams]) => (
+              <div key={confName} className="conference-section">
+                <h2>{confName.toUpperCase()} Conference</h2>
+                <table className="standings-table">
+                  <thead>
+                    <tr>
+                      <th>Team</th>
+                      <th>Wins</th>
+                      <th>Losses</th>
+                      <th>Win %</th>
+                      <th>Games Behind</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {confTeams
+                      .sort((a, b) => b.winPercentage - a.winPercentage)
+                      .map((team, index) => (
+                        <tr key={team.id}>
+                          <td>
+                            {index + 1}
+                            <img src={team.logo} className="team-logo"/>
+                            {team.name}
+                          </td>
+                          <td>{team.wins}</td>
+                          <td>{team.losses}</td>
+                          <td>{(team.winPercentage * 100).toFixed(1)}%</td>
+                          <td>{team.gamesBehind.toFixed(1)}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Division View */}
+        {view === "division" && Object.keys(teams.divisions).length > 0 && (
+          <div>
+            {Object.entries(teams.divisions).map(([divName, divTeams]) => (
+              <div key={divName} className="division-section">
+                <h2>{divName.toUpperCase()} Division</h2>
+                <table className="standings-table">
+                  <thead>
+                    <tr>
+                      <th>Team</th>
+                      <th>Wins</th>
+                      <th>Losses</th>
+                      <th>Win %</th>
+                      <th>Games Behind</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {divTeams
+                      .sort((a, b) => b.winPercentage - a.winPercentage)
+                      .map((team, index) => (
+                        <tr key={team.id}>
+                          <td>
+                            {index + 1}
+                            <img src={team.logo} className="team-logo"/>
+                            {team.name}
+                          </td>
+                          <td>{team.wins}</td>
+                          <td>{team.losses}</td>
+                          <td>{(team.winPercentage * 100).toFixed(1)}%</td>
+                          <td>{team.gamesBehind.toFixed(1)}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </>
