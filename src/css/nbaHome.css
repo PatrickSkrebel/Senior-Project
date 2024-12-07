@@ -1,142 +1,236 @@
-/* src/css/nbaHome.css */
-
-/* General layout */
+/* General Styling */
 body {
-    margin: 0;
-    padding: 0;
-    font-family: Arial, sans-serif;
-  }
-  
-  .home-title {
-    text-align: center;
-    font-size: 24px;
-    color: #333;
-    margin-bottom: 10px;
-  }
-  
-  .home-text {
-    text-align: center;
-    font-size: 16px;
-    color: #555;
-    margin-bottom: 20px;
-  }
-  
-  /* Page Layout */
-  .page-layout {
-    display: flex;
-    align-items: flex-start; /* Align the items to the top */
-    justify-content: center; /* Center align the entire layout */
-    margin: 0 auto;
-    max-width: 1200px; /* Define a maximum width */
-    gap: 40px; /* Add larger spacing between the cards and news sections */
-    padding: 20px;
-  }
-  
-  /* Cards Section */
-  .cards-section {
-    display: flex;
-    flex-direction: column; /* Stack the cards vertically */
-    gap: 20px; /* Add spacing between cards */
-  }
-  
-  .card {
-    background: #f9f9f9;
-    border-radius: 10px;
-    padding: 20px;
-    width: 200px;
-    text-align: center;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-  }
-  
-  .card a {
-    color: #007bff;
-    text-decoration: none;
-  }
-  
-  .card a:hover {
-    text-decoration: underline;
-  }
-  
-  /* News Section Layout */
-  .news-section {
-    flex: 1; /* Allow the news section to take up available space */
-    max-width: 800px; /* Constrain the news section width */
-    margin: 20px 0;
-    padding: 20px;
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-  }
-  
-  /* Individual News Card */
-  .news-card {
-    display: flex; /* Align image and content side by side */
-    align-items: flex-start; /* Align items to the top */
-    gap: 20px; /* Add space between the image and the text */
-    margin-bottom: 20px;
-    padding: 15px;
-    border-bottom: 1px solid #ddd; /* Add a separator between news cards */
-  }
-  
-  /* News Image */
-  .news-image {
-    width: 150px; /* Fixed width for the image */
-    height: auto; /* Maintain aspect ratio */
-    border-radius: 8px; /* Rounded corners */
-    object-fit: cover; /* Crop the image nicely */
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for the image */
-  }
-  
-  /* News Content */
-  .news-content {
-    flex: 1; /* Allow the text to take up remaining space */
-  }
-  
-  /* News Title */
-  .news-title {
-    font-size: 18px;
-    color: #007bff;
-    text-decoration: none;
-    margin: 0;
-  }
-  
-  .news-title:hover {
-    text-decoration: underline;
-  }
-  
-  /* News Description */
-  .news-description {
-    font-size: 14px;
-    color: #555;
-    margin-top: 5px;
-    line-height: 1.6; /* Add spacing between lines for better readability */
-  }
-  
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+}
 
-  .games-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 20px;
-  }
-  
-  .game-card {
-    width: 200px;
-    padding: 10px;
-    background-color: #f9f9f9;
-    border-radius: 10px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    text-align: center;
-  }
-  
-  .team-info {
-    font-size: 16px;
-    font-weight: bold;
-    margin-bottom: 10px;
-  }
-  
-  .game-status {
-    color: #007bff;
-    font-weight: bold;
-  }
-  
+.live-games-wrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+  width: 100%;
+  background-color: #ffffff;
+  padding: 0;
+  margin: 0;
+  border-top: 1px solid #ddd; /* Optional for visual separation */
+}
+
+.live-games-row {
+  display: flex;
+  overflow-x: auto; /* Enable horizontal scrolling */
+  width: 100%;
+  padding: 10px 0;
+  gap: 20px;
+  scroll-behavior: smooth; /* Smooth scrolling for better UX */
+}
+
+.live-games-row::-webkit-scrollbar {
+  height: 8px; /* Customize scrollbar height */
+}
+
+.live-games-row::-webkit-scrollbar-thumb {
+  background: #007bff; /* Thumb color */
+  border-radius: 5px; /* Rounded corners for the thumb */
+}
+
+.live-games-row::-webkit-scrollbar-track {
+  background: #f9f9f9; /* Track color */
+}
+
+.game-card-horizontal {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-width: 220px;
+  border-right: 1px solid #ddd; /* Add a dividing line between games */
+  padding: 10px 5px;
+  background-color: #f9f9f9;
+}
+
+.game-card-horizontal:last-child {
+  border-right: none; /* Remove the border for the last card */
+}
+
+.team-row-horizontal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 5px 10px;
+}
+
+.team-logo {
+  width: 30px;
+  height: 30px;
+  object-fit: cover;
+  margin-right: 10px;
+}
+
+.team-abbreviation {
+  font-size: 14px;
+  font-weight: bold;
+  flex-grow: 1;
+  text-align: left;
+}
+
+.team-quarters {
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+  flex-grow: 1;
+}
+
+.team-score {
+  font-size: 14px;
+  font-weight: bold;
+  color: #333;
+}
+
+/* Arrow Buttons */
+.arrow-button {
+  background-color: #007bff;
+  color: #ffffff;
+  border: none;
+  border-radius: 50%;
+  width: 30px; /* Reduced width */
+  height: 30px; /* Reduced height */
+  font-size: 18px; /* Reduced font size */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: absolute;
+  top: 10%; /* Adjusted position to avoid overlapping scores */
+  transform: translateY(-50%);
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  margin-top: 120px;
+}
+
+.left-arrow {
+  left: 5px; /* Reduced margin to save space */
+}
+
+.right-arrow {
+  right: 5px; /* Reduced margin to save space */
+}
+
+.arrow-button:hover {
+  background-color: #0056b3;
+}
+
+.no-games-message {
+  font-size: 14px;
+  color: #888;
+  text-align: center;
+  margin-top: 20px;
+}
+
+/* News Section */
+.news-section {
+  width: 100%;
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.news-section h2 {
+  text-align: center;
+  font-size: 22px;
+  color: #333333;
+  margin-bottom: 20px;
+}
+
+.news-card {
+  margin-bottom: 15px;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  transition: background-color 0.3s ease;
+  justify-content: center;
+}
+
+.news-card:hover {
+  background-color: #f5f5f5;
+}
+
+.news-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #007bff;
+  text-decoration: none;
+}
+
+.news-title:hover {
+  text-decoration: underline;
+}
+
+.news-source {
+  font-size: 14px;
+  color: #555555;
+  margin-top: 25px;
+  justify-content: right;
+  align-items: center;
+}
+
+.no-articles-message {
+  font-size: 14px;
+  color: #888888;
+  text-align: center;
+  margin-top: 20px;
+}
+
+/* Quarter Labels */
+.quarters-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  font-size: 12px;
+  color: #333;
+  font-weight: bold;
+  text-align: center;
+  gap: 15px;
+}
+
+.quarters-scores {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+}
+
+.quarters-scores span {
+  width: 30px; /* Adjust this width to match the space you want for each quarter score */
+}
+
+/* Adding slight gap between quarter labels and scores */
+.team-quarters {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.date-dropdown {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px 0;
+}
+
+.date-dropdown label {
+  font-size: 16px;
+  margin-right: 10px;
+}
+
+#date-select {
+  padding: 5px 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
