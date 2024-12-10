@@ -157,7 +157,7 @@ const NBAHome = () => {
                 return (
                   <div key={game.id} className="game-card-horizontal">
                     <div className="team-row-horizontal">
-                      <img src={game.teams.visitors.logo} alt={game.teams.visitors.name} className="team-logo" />
+                      <img src={game.teams.visitors.logo} className="team-logo" />
                       <span className="team-abbreviation">{game.teams.visitors.code}</span>
                       <div className="team-quarters">
                         <div className="quarters-label">

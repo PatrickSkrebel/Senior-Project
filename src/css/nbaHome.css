@@ -14,6 +14,7 @@ body {
   padding: 0;
   margin: 0;
   border-top: 1px solid #ddd; /* Optional for visual separation */
+
 }
 
 .live-games-row {
@@ -21,8 +22,10 @@ body {
   overflow-x: auto; /* Enable horizontal scrolling */
   width: 100%;
   padding: 10px 0;
-  gap: 20px;
+
   scroll-behavior: smooth; /* Smooth scrolling for better UX */
+  justify-content: center;
+  align-items: center;
 }
 
 .live-games-row::-webkit-scrollbar {
