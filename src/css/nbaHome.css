@@ -22,7 +22,6 @@ body {
   overflow-x: auto; /* Enable horizontal scrolling */
   width: 100%;
   padding: 10px 0;
-
   scroll-behavior: smooth; /* Smooth scrolling for better UX */
   justify-content: center;
   align-items: center;
@@ -236,4 +235,19 @@ body {
   font-size: 14px;
   border: 1px solid #ccc;
   border-radius: 5px;
+}
+
+.game-time {
+  font-size: 14px;
+  font-weight: bold;
+  color: #555;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.live-games-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  padding: 20px;
 }

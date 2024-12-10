@@ -31,12 +31,11 @@ const NBAHome = () => {
     setLoading(true);
     setError(""); // Clear previous errors
     try {
-      const adjustedDate = new Date(date);
-      adjustedDate.setDate(adjustedDate.getDate() + 1); // Adjust for API date mismatch
+      const formattedDate = date.toISOString().split("T")[0];
 
-      const formattedDate = adjustedDate.toISOString().split("T")[0];
+      // Fetch games for the specified date
       const response = await axios.get("https://api-nba-v1.p.rapidapi.com/games", {
-        params: { date: formattedDate, season: "2024" },
+        params: { season: "2024" },
         headers: {
           "x-rapidapi-key": "836d6f1bc0msh79bf5504688036bp1ea845jsne6c16f734e02",
           "x-rapidapi-host": "api-nba-v1.p.rapidapi.com",
@@ -47,33 +46,23 @@ const NBAHome = () => {
         throw new Error(`Unexpected response code: ${response.status}`);
       }
 
-      const gamesWithScores = response.data.response.map((game) => {
-        const calculateTotalScore = (linescore) =>
-          linescore && linescore.length > 0
-            ? linescore.reduce((total, score) => total + parseInt(score || "0", 10), 0)
-            : 0;
+      // Log the raw API response for debugging
+      console.log("Raw API Response:", response.data);
 
-        const visitorTotalScore =
-          game.scores.visitors.points || calculateTotalScore(game.scores.visitors.linescore);
-        const homeTotalScore =
-          game.scores.home.points || calculateTotalScore(game.scores.home.linescore);
+      // Filter games for the selected date
+      const gamesForSelectedDate = response.data.response.filter((game) => {
+        const gameDateUTC = new Date(game.date.start);
+        const gameDateLocal = new Date(
+          gameDateUTC.getTime() + gameDateUTC.getTimezoneOffset() * 60000
+        );
 
-        return {
-          ...game,
-          scores: {
-            visitors: {
-              ...game.scores.visitors,
-              points: visitorTotalScore,
-            },
-            home: {
-              ...game.scores.home,
-              points: homeTotalScore,
-            },
-          },
-        };
+        // Log comparison for debugging
+        console.log("Game Date:", gameDateLocal, "Selected Date:", formattedDate);
+
+        return gameDateLocal.toISOString().split("T")[0] === formattedDate;
       });
 
-      setLiveGames(gamesWithScores);
+      setLiveGames(gamesForSelectedDate);
     } catch (err) {
       console.error("Error fetching live games:", err.message || err);
       setError("Failed to load live games. Please try again later.");
@@ -120,12 +109,17 @@ const NBAHome = () => {
     return options;
   };
 
+  const getFormattedDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  };
+
   return (
     <>
       <div>
         <NBAHeader />
 
-        {/* Date Dropdown */}
+        {/* Date Dropdown 
         <div className="date-dropdown">
           <label htmlFor="date-select">Select Date: </label>
           <select
@@ -140,7 +134,7 @@ const NBAHome = () => {
             ))}
           </select>
         </div>
-
+        */}
         {/* Live Games */}
         <div className="live-games-wrapper">
           <button className="arrow-button left-arrow" onClick={handlePreviousDay}>
@@ -157,9 +151,10 @@ const NBAHome = () => {
                 return (
                   <div key={game.id} className="game-card-horizontal">
                     <div className="team-row-horizontal">
-                      <img src={game.teams.visitors.logo} className="team-logo" />
+                      <img src={game.teams.visitors.logo} alt={game.teams.visitors.name} className="team-logo" />
                       <span className="team-abbreviation">{game.teams.visitors.code}</span>
                       <div className="team-quarters">
+                          <span>{getFormattedDate(game.date.start)}</span>
                         <div className="quarters-label">
                           <span>Q1</span>
                           <span>Q2</span>
