@@ -1,144 +1,192 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import '../../css/nbaLeaders.css';
+import '../../css/NBALeagueLeaders.css';
+import '../../components/nbaHeader';
 import NBAHeader from '../../components/nbaHeader';
 
-export default function LeagueLeaders() {
-  const [leaders, setLeaders] = useState([]); // Store leaders data
-  const [loading, setLoading] = useState(true); // Loading state
-  const [error, setError] = useState(''); // Error state
-  const [selectedCategory, setSelectedCategory] = useState(''); // Selected category
-  const [perMode, setPerMode] = useState('total'); // Selected "Per Mode"
+const LeagueLeaders = () => {
+  const [leaders, setLeaders] = useState([]);
+  const [error, setError] = useState(null);
+
+  const [seasonSelectedValue, setSeasonSelectedValue] = useState('2024-25');
+  const [typeSelectValue, setTypeValue] = useState('Regular Season');
+  const [perSelectValue, setPerMode] = useState('PerGame');
+  const [statSelectValue, setStatTypeValue] = useState('PTS');
+
+  const fetchLeagueLeaders = async (seasonSelectedValue, typeSelectValue, perMode, statCategory) => {
+    try {
+      const response = await axios.get(`https://stats.nba.com/stats/leagueLeaders`, {
+        params: {
+          LeagueID: '00',
+          PerMode: perMode,
+          StatCategory: statCategory,
+          Season: seasonSelectedValue,
+          SeasonType: typeSelectValue,
+          Scope: 'S',
+          ActiveFlag: null,
+        },
+        headers: {
+          Accept: 'application/json, text/plain, */*',
+          'x-nba-stats-origin': 'stats',
+          'x-nba-stats-token': 'true',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
+        },
+      });
+
+      setLeaders(response.data.resultSet.rowSet);
+    } catch (err) {
+      setError(err);
+      console.error(err);
+    }
+  };
 
   useEffect(() => {
-    const fetchLeaders = async () => {
-      try {
-        const response = await axios.get(
-          `http://localhost:5000/api/nba-leaders?per_mode=${perMode}`
-        );
-        const categories = response.data.categories || [];
-        setLeaders(categories);
-        if (categories.length > 0) setSelectedCategory(categories[0].name); // Default to first category
-        setLoading(false);
-      } catch (err) {
-        console.error('Error fetching NBA leaders:', err.message);
-        setError('Failed to fetch NBA leaders');
-        setLoading(false);
-      }
-    };
+    fetchLeagueLeaders(seasonSelectedValue, typeSelectValue, perSelectValue, statSelectValue);
+  }, [seasonSelectedValue, typeSelectValue, perSelectValue, statSelectValue]);
 
-    fetchLeaders();
-  }, [perMode]); // Refetch data when "Per Mode" changes
+  const handleSeasonChange = (event) => setSeasonSelectedValue(event.target.value);
+  const handleSeasonTypeChange = (event) => setTypeValue(event.target.value);
+  const handlePerModeChange = (event) => setPerMode(event.target.value);
+  const handleStatCategoryChange = (event) => setStatTypeValue(event.target.value);
 
-  if (loading) return <p>Loading league leaders...</p>;
-  if (error) return <p>{error}</p>;
-
-  // Find the selected category data
-  const selectedCategoryData = leaders.find((category) => category.name === selectedCategory);
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
 
   return (
     <>
-      <NBAHeader />
-      <div className="league-leaders-container">
-        <h1 className="page-title">NBA League Leaders</h1>
+    <NBAHeader />
+    <div className="league-leaders-page">
+      <h1>NBA League Leaders</h1>
+      <p className="disclaimer">* Total Points Isn't correct for any Season Type, Order is correct</p>
 
-        {/* Filters: Per Mode and Category */}
-        <div className="filters-container">
-          {/* Dropdown for selecting "Per Mode" */}
-          <div className="filter">
-            <label htmlFor="per-mode-select">Per Mode:</label>
-            <select
-              id="per-mode-select"
-              value={perMode}
-              onChange={(e) => setPerMode(e.target.value)}
-              className="dropdown-select"
-            >
-              <option value="total">Totals</option>
+      <div className="selectors-container">
+        <div className="selector">
+          <label>
+            Season:
+            <select value={seasonSelectedValue} onChange={handleSeasonChange}>
+              {Array.from({ length: 74 }, (_, index) => {
+                const year = 2024 - index;
+                const nextYear = (year + 1).toString().slice(-2);
+                return (
+                  <option key={year} value={`${year}-${nextYear}`}>
+                    {`${year}-${nextYear}`}
+                  </option>
+                );
+              })}
             </select>
-          </div>
-
-          {/* Dropdown for selecting category */}
-          <div className="filter">
-            <label htmlFor="category-select">Category:</label>
-            <select
-              id="category-select"
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="dropdown-select"
-            >
-              {leaders.map((category) => (
-                <option key={category.name} value={category.name}>
-                  {category.name.charAt(0).toUpperCase() + category.name.slice(1)}
-                </option>
-              ))}
-            </select>
-          </div>
+          </label>
         </div>
 
-        {/* Display table for selected category */}
-        {selectedCategoryData && (
-          <div className="leader-category">
-            <table className="leaders-table">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Player</th>
-                  <th>Team</th>
-                  <th>GP</th>
-                  <th>MIN</th>
-                  <th>PTS</th>
-                  <th>FGM</th>
-                  <th>FGA</th>
-                  <th>FG%</th>
-                  <th>3PM</th>
-                  <th>3PA</th>
-                  <th>3P%</th>
-                  <th>FTM</th>
-                  <th>FTA</th>
-                  <th>FT%</th>
-                  <th>OREB</th>
-                  <th>DREB</th>
-                  <th>REB</th>
-                  <th>AST</th>
-                  <th>STL</th>
-                  <th>BLK</th>
-                  <th>TOV</th>
-                  <th>EFF</th>
-                </tr>
-              </thead>
-              <tbody>
-                {selectedCategoryData.ranks.map((player) => (
-                  <tr key={`${player.player.id}-${selectedCategoryData.name}`}>
-                    <td>{player.rank}</td>
-                    <td>{player.player.full_name}</td>
-                    <td>{player.teams.map((team) => team.market + ' ' + team.name).join(', ')}</td>
-                    <td>{player[perMode].games_played}</td>
-                    <td>{player[perMode].minutes}</td>
-                    <td>{player[perMode].points}</td>
-                    <td>{player[perMode].field_goals_made}</td>
-                    <td>{player[perMode].field_goals_att}</td>
-                    <td>{(player[perMode].field_goals_pct * 100).toFixed(1)}%</td>
-                    <td>{player[perMode].three_points_made}</td>
-                    <td>{player[perMode].three_points_att}</td>
-                    <td>{(player[perMode].three_points_pct * 100).toFixed(1)}%</td>
-                    <td>{player[perMode].free_throws_made}</td>
-                    <td>{player[perMode].free_throws_att}</td>
-                    <td>{(player[perMode].free_throws_pct * 100).toFixed(1)}%</td>
-                    <td>{player[perMode].offensive_rebounds}</td>
-                    <td>{player[perMode].defensive_rebounds}</td>
-                    <td>{player[perMode].rebounds}</td>
-                    <td>{player[perMode].assists}</td>
-                    <td>{player[perMode].steals}</td>
-                    <td>{player[perMode].blocks}</td>
-                    <td>{player[perMode].turnovers}</td>
-                    <td>{player[perMode].efficiency}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <div className="selector">
+          <label>
+            Season Type:
+            <select value={typeSelectValue} onChange={handleSeasonTypeChange}>
+              <option value="Pre Season">Preseason</option>
+              <option value="Regular Season">Regular Season</option>
+              <option value="Playoffs">Playoffs</option>
+              <option value="All Star">All-Star</option>
+            </select>
+          </label>
+        </div>
+
+        <div className="selector">
+          <label>
+            Per Mode:
+            <select value={perSelectValue} onChange={handlePerModeChange}>
+              <option value="Totals">Totals</option>
+              <option value="PerGame">Per Game</option>
+              <option value="Per48">Per 48 Minutes</option>
+            </select>
+          </label>
+        </div>
+
+        <div className="selector">
+          <label>
+            Stat Category:
+            <select value={statSelectValue} onChange={handleStatCategoryChange}>
+              <option value="MIN">MIN</option>
+              <option value="OREB">OREB</option>
+              <option value="DREB">DREB</option>
+              <option value="REB">REB</option>
+              <option value="AST">AST</option>
+              <option value="STL">STL</option>
+              <option value="BLK">BLK</option>
+              <option value="TOV">TOV</option>
+              <option value="EFF">EFF</option>
+              <option value="PTS">PTS</option>
+              <option value="FGM">FGM</option>
+              <option value="FGA">FGA</option>
+            </select>
+          </label>
+        </div>
       </div>
+
+      {leaders.length === 0 ? (
+        <div className="no-data">No Data</div>
+      ) : (
+        <table>
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Player</th>
+              <th>Team</th>
+              <th>GP</th>
+              <th>MIN</th>
+              <th>PTS</th>
+              <th>FGM</th>
+              <th>FGA</th>
+              <th>FG%</th>
+              <th>3PM</th>
+              <th>3PA</th>
+              <th>3P%</th>
+              <th>FTM</th>
+              <th>FTA</th>
+              <th>FT%</th>
+              <th>OREB</th>
+              <th>DREB</th>
+              <th>REB</th>
+              <th>AST</th>
+              <th>STL</th>
+              <th>BLK</th>
+              <th>TOV</th>
+              <th>EFF</th>
+            </tr>
+          </thead>
+          <tbody>
+            {leaders.map((leader, index) => (
+              <tr key={index}>
+                <td>{leader[1]}</td>
+                <td>{leader[2]}</td>
+                <td>{leader[4]}</td>
+                <td>{leader[5]}</td>
+                <td>{leader[6]}</td>
+                <td>{leader[23]}</td>
+                <td>{leader[7]}</td>
+                <td>{leader[8]}</td>
+                <td>{parseFloat(leader[9] * 100).toFixed(1)}%</td>
+                <td>{leader[10]}</td>
+                <td>{leader[11]}</td>
+                <td>{parseFloat(leader[12] * 100).toFixed(1)}%</td>
+                <td>{leader[13]}</td>
+                <td>{leader[14]}</td>
+                <td>{parseFloat(leader[15] * 100).toFixed(1)}%</td>
+                <td>{leader[16]}</td>
+                <td>{leader[17]}</td>
+                <td>{leader[18]}</td>
+                <td>{leader[19]}</td>
+                <td>{leader[20]}</td>
+                <td>{leader[21]}</td>
+                <td>{parseFloat(leader[22]).toFixed(1)}</td>
+                <td>{leader[24]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
     </>
   );
-}
+};
+
+export default LeagueLeaders;
