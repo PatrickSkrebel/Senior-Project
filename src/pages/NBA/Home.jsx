@@ -151,7 +151,7 @@ const NBAHome = () => {
                 return (
                   <div key={game.id} className="game-card-horizontal">
                     <div className="team-row-horizontal">
-                      <img src={game.teams.visitors.logo} alt={game.teams.visitors.name} className="team-logo" />
+                      <img src={game.teams.visitors.logo} className="team-logo" />
                       <span className="team-abbreviation">{game.teams.visitors.code}</span>
                       <div className="team-quarters">
                           <span>{getFormattedDate(game.date.start)}</span>
@@ -165,11 +165,11 @@ const NBAHome = () => {
                           <span>{visitorScores[0]}</span>
                           <span>{visitorScores[1]}</span>
                           <span>{visitorScores[2]}</span>
-                          <span>{visitorScores[3]}</span>
-                        </div>
+                          <span>{visitorScores[3]}</span>                          
+                        </div>                        
                       </div>
-                      <span className="team-score">{game.scores.visitors.points}</span>
-                    </div>
+                      <span className="team-visitor-score">{game.scores.visitors.points}</span>
+                    </div>                    
                     <div className="team-row-horizontal">
                       <img src={game.teams.home.logo} alt={game.teams.home.name} className="team-logo" />
                       <span className="team-abbreviation">{game.teams.home.code}</span>

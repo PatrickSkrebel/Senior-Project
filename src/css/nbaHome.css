@@ -71,7 +71,7 @@ body {
 }
 
 .team-abbreviation {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: bold;
   flex-grow: 1;
   text-align: left;
@@ -88,6 +88,13 @@ body {
   font-size: 14px;
   font-weight: bold;
   color: #333;
+}
+
+.team-visitor-score {
+  font-size: 14px;
+  font-weight: bold;
+  color: #333;
+  margin-top: 40px;
 }
 
 /* Arrow Buttons */
