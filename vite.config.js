@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  base: '/', // Change this to '/app/' if hosted in a subdirectory
+  base: '/', // Adjust to the subdirectory if your site isn't at the root
   server: {
     proxy: {
       '/api': {

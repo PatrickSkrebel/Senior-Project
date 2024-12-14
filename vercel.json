@@ -19,6 +19,10 @@
       "dest": "/favicon.ico"
     },
     {
+      "src": "/(.*)\\.(js|css|png|jpg|svg|ico|json|woff|woff2|ttf|otf|eot)",
+      "dest": "/$1"
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html"
     }
