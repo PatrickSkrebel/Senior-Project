@@ -9,6 +9,40 @@ const NBAHeader = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null); // Reference to the dropdown
 
+  const teamIdMap = {
+    "Atlanta Hawks": 1,
+    "Boston Celtics": 2,
+    "Brooklyn Nets": 4,
+    "Charlotte Hornets": 5,
+    "Chicago Bulls": 6,
+    "Cleveland Cavaliers": 7,
+    "Dallas Mavericks": 8,
+    "Denver Nuggets": 9,
+    "Detroit Pistons": 10,
+    "Golden State Warriors": 11,
+    "Houston Rockets": 14,
+    "Indiana Pacers": 15,
+    "LA Clippers": 16,
+    "Los Angeles Lakers": 17,
+    "Memphis Grizzlies": 19,
+    "Miami Heat": 20,
+    "Milwaukee Bucks": 21,
+    "Minnesota Timberwolves": 22,
+    "New Orleans Pelicans": 23,
+    "New York Knicks": 24,
+    "Oklahoma City Thunder": 25,
+    "Orlando Magic": 26,
+    "Philadelphia 76ers": 27,
+    "Phoenix Suns": 28,
+    "Portland Trail Blazers": 29,
+    "Sacramento Kings": 30,
+    "San Antonio Spurs": 31,
+    "Toronto Raptors": 38,
+    "Utah Jazz": 40,
+    "Washington Wizards": 41,
+  };
+  
+
   const divisions = {
     Atlantic: [
       "Boston Celtics",
@@ -81,7 +115,7 @@ const NBAHeader = () => {
       <nav className="nba-header__nav">
         <Link to="/nba/standings" className="nba-header__link">Standings</Link>
         <Link to="/nba/league-leaders" className="nba-header__link">League Leaders</Link>
-        <Link to="/nba/fantasy" className="nba-header__link">Fantasy</Link>
+        <Link to="/nba/fantasy/HomePage" className="nba-header__link">Fantasy</Link>
         <Link to="/nba/games" className="nba-header__link">Games</Link>
         <div className="nba-header__dropdown" ref={dropdownRef}>
           <button onClick={toggleDropdown} className="nba-header__dropdown-button">
@@ -93,16 +127,20 @@ const NBAHeader = () => {
                 <div key={division} className="nba-header__division">
                   <h4 className="nba-header__division-title">{division}</h4>
                   <ul className="nba-header__team-list">
-                    {teams.map((team) => (
+                  {teams.map((team) => {
+                    const teamId = teamIdMap[team]; // Get the correct team ID from the map
+                    return (
                       <li key={team} className="nba-header__dropdown-item">
                         <Link
-                          to={`/nba/teams/${team.toLowerCase().replace(/\s+/g, "-")}`}
+                          to={`/nba/Players/Roster/${teamId}`}
                           className="nba-header__dropdown-link"
                         >
                           {team}
                         </Link>
                       </li>
-                    ))}
+                    );
+                  })}
+
                   </ul>
                 </div>
               ))}

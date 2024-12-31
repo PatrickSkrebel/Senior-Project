@@ -1,0 +1,39 @@
+.roster-container {
+  margin: 20px auto;
+  padding: 20px;
+  max-width: 800px;
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+
+.team-logo {
+  margin: 10px 0;
+  object-fit: contain; /* Ensure the entire logo fits within the container */
+}
+
+.roster-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.roster-table th,
+.roster-table td {
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: center;
+  color: black; /* Set text color to black */
+}
+
+.roster-table th {
+  background-color: #f4f4f4;
+  font-weight: bold;
+}
+
+.roster-table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.roster-table tr:hover {
+  background-color: #e8f0fe;
+}

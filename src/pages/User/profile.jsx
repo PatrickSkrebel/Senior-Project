@@ -14,6 +14,7 @@ const Profile = () => {
   const { session, profile, loading, setProfile } = useAuth(); // Assuming setProfile is exposed in your AuthProvider
   const navigate = useNavigate();
   const [isPopupOpen, setIsPopupOpen] = useState(false); // Popup state
+  const [userLeagues, setUserLeagues] = useState([]);
 
   // Refetch the profile after signing up or if the session changes
   useEffect(() => {
@@ -35,6 +36,28 @@ const Profile = () => {
 
     fetchProfile();
   }, [session, setProfile]); // Trigger refetch when session changes
+
+  // Grabs leagues that user created or joined
+  const fetchUserLeagues = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("FantasyLeagues")
+        .select("leagueName, leagueCode")
+        .eq("user_id", session.user.id); // Fetch leagues created by the user
+  
+      if (error) throw error;
+  
+      setUserLeagues(data);
+    } catch (err) {
+      console.error("Error fetching user leagues:", err.message);
+    }
+  };
+  
+  useEffect(() => {
+    if (session?.user?.id) {
+      fetchUserLeagues();
+    }
+  }, [session]);
 
   // Redirect to sign-in if the user is not authenticated
   useEffect(() => {
@@ -131,8 +154,20 @@ const Profile = () => {
           </div>
           <div className="stats-card">
             <h3>Fantasy Stats</h3>
-            <div className="stats-item"></div>
-            <div className="stats-item"></div>
+            <div className="stats-item">
+            {userLeagues.length > 0 ? (
+              <div className="league-list">
+                {userLeagues.map((league) => (
+                  <div key={league.leagueCode} className="league-item">
+                    <span className="league-name">{league.leagueName}</span>
+                    <span className="league-code">{league.leagueCode}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p>No leagues created yet.</p>
+            )}
+            </div>
           </div>
         </div>
 

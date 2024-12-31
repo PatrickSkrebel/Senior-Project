@@ -12,7 +12,15 @@ import ErrorBoundary from "./providers/ErrorBoundary";
 
 import Standings from "./pages/NBA/Standings";
 import LeagueLeaders from "./pages/NBA/LeagueLeaders";
-import Fantasy from './pages/NBA/Fantasy';
+
+import Roster from './pages/NBA/Players/Roster';
+import PlayerStats from './pages/NBA/Players/playerStats';
+
+// Fantasy pages
+import Fantasy from './pages/NBA/Fantasy/HomePage';
+import League from './pages/NBA/Fantasy/League';
+import FantasyRoster from './pages/NBA/Fantasy/RosterPage';
+
 
 const App = () => {
   return (
@@ -37,7 +45,12 @@ const App = () => {
          
           <Route path="/nba/Standings" element={<Standings />} /> 
           <Route path="/nba/league-leaders" element={<LeagueLeaders />} />
-          <Route path="/nba/fantasy" element={<Fantasy />} />{/*
+          <Route path="/nba/fantasy/HomePage" element={<Fantasy />} />
+          <Route path="/nba/fantasy/league" element={<League />} />
+          <Route path="/nba/fantasy/rosterpage" element={<FantasyRoster />} />
+          <Route path="/nba/players/roster/:id" element={<Roster />}/>
+          <Route path="/nba/players/playerStats/:id" element={<PlayerStats />}/>
+          {/*
           <Route path="/nba/games" element={<Games />} />
           <Route path="/nba/teams/:teamId" element={<Team />} />
           */}

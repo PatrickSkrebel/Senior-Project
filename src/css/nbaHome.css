@@ -258,3 +258,28 @@ body {
   gap: 20px;
   padding: 20px;
 }
+
+.blinking-light {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: red;
+  animation: blink 5s infinite;
+  display: inline-block;
+  margin-right: 5px;
+}
+
+@keyframes blink {
+  0%, 50%, 100% {
+    opacity: 1;
+  }
+  25%, 75% {
+    opacity: 0;
+  }
+}
+
+.game-card-horizontal .team-score,
+.game-card-horizontal .team-visitor-score {
+  transition: all 0.3s ease-in-out;
+}
+
