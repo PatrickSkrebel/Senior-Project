@@ -20,7 +20,7 @@ import PlayerStats from './pages/NBA/Players/playerStats';
 import Fantasy from './pages/NBA/Fantasy/HomePage';
 import League from './pages/NBA/Fantasy/League';
 import FantasyRoster from './pages/NBA/Fantasy/RosterPage';
-
+import DraftScreen from './pages/NBA/Fantasy/Draft';
 
 const App = () => {
   return (
@@ -50,6 +50,8 @@ const App = () => {
           <Route path="/nba/fantasy/rosterpage" element={<FantasyRoster />} />
           <Route path="/nba/players/roster/:id" element={<Roster />}/>
           <Route path="/nba/players/playerStats/:id" element={<PlayerStats />}/>
+          <Route path="nba/fantasy/draft/:leagueId" element={<DraftScreen />} />
+
           {/*
           <Route path="/nba/games" element={<Games />} />
           <Route path="/nba/teams/:teamId" element={<Team />} />
