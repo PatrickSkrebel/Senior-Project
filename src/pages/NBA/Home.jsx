@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react";
 import NBAHeader from "../../components/nbaHeader";
 import axios from "axios";
+import { supabase } from "../../lib/supabaseClient";
+import { useAuth } from "../../providers/AuthProvider";
 import "../../css/nbaHome.css";
+import { useNavigate } from "react-router-dom";
 
 const NBAHome = () => {
   const [liveGames, setLiveGames] = useState([]);
@@ -9,19 +12,20 @@ const NBAHome = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [newsArticles, setNewsArticles] = useState([]);
+  const [comments, setComments] = useState({});
+  const [likes, setLikes] = useState({});
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const { session } = useAuth(); // Use session from AuthProvider
+  const navigate = useNavigate();
 
-  // Utility function to determine if a game is live
+  // Utility to check if a game is live
   const isGameLive = (game) => {
     const currentTime = new Date();
-    const gameStartTime = new Date(game.date.start); // Ensure `game.date.start` is available
-    const gameDurationInHours = 2.5; // Approximate game duration in hours
-  
+    const gameStartTime = new Date(game.date.start);
+    const gameDurationInHours = 2.5;
     const gameEndTime = new Date(gameStartTime.getTime() + gameDurationInHours * 60 * 60 * 1000);
-  
-    // Check if the current time falls between the game's start and estimated end time
     return currentTime >= gameStartTime && currentTime <= gameEndTime;
   };
-  
 
   // Fetch NBA News
   const fetchNBANews = async () => {
@@ -42,7 +46,7 @@ const NBAHome = () => {
   // Fetch Live Games
   const fetchLiveGames = async (date) => {
     setLoading(true);
-    setError(""); // Clear previous errors
+    setError("");
     try {
       const formattedDate = date.toISOString().split("T")[0];
       const response = await axios.get("https://api-nba-v1.p.rapidapi.com/games", {
@@ -57,7 +61,6 @@ const NBAHome = () => {
         throw new Error(`Unexpected response code: ${response.status}`);
       }
 
-      // Filter games for the selected date
       const gamesForSelectedDate = response.data.response.filter((game) => {
         const gameDateUTC = new Date(game.date.start);
         const gameDateLocal = new Date(
@@ -76,27 +79,82 @@ const NBAHome = () => {
     }
   };
 
+  // Fetch Comments and Likes from Supabase
+  const fetchInteractions = async () => {
+    try {
+      const { data: commentsData } = await supabase.from("comments").select("*");
+      const { data: likesData } = await supabase.from("likes").select("*");
+
+      const organizedComments = commentsData.reduce((acc, comment) => {
+        if (!acc[comment.article_id]) acc[comment.article_id] = [];
+        acc[comment.article_id].push(comment);
+        return acc;
+      }, {});
+
+      const organizedLikes = likesData.reduce((acc, like) => {
+        acc[like.article_id] = (acc[like.article_id] || 0) + 1;
+        return acc;
+      }, {});
+
+      setComments(organizedComments);
+      setLikes(organizedLikes);
+    } catch (err) {
+      console.error("Failed to fetch interactions:", err.message);
+    }
+  };
+
   useEffect(() => {
-    const fetchAndUpdateLiveGames = async () => {
-      try {
-        await fetchLiveGames(currentDate);
-      } catch (err) {
-        console.error("Error updating live games:", err.message || err);
-      }
-    };
-  
     fetchNBANews();
-    fetchAndUpdateLiveGames();
-  
-    // Set interval for updating live scores
-    const interval = setInterval(() => {
-      fetchAndUpdateLiveGames(); // Fetch and update the scores every 5 minutes
-    }, 300000); // 5 minutes in milliseconds
-  
-    // Cleanup interval on component unmount
-    return () => clearInterval(interval);
+    fetchLiveGames(currentDate);
+    fetchInteractions();
   }, [currentDate]);
-  
+
+  const handleCommentSubmit = async (articleId, content) => {
+    if (!session?.user?.id) {
+      setShowLoginModal(true);
+      return;
+    }
+    try {
+      await supabase
+        .from("comments")
+        .insert({ article_id: articleId, user_id: session.user.id, content });
+      fetchInteractions(); // Refresh comments
+    } catch (err) {
+      console.error("Failed to submit comment:", err.message);
+    }
+  };
+
+  const handleLike = async (articleId) => {
+    if (!session) {
+      setShowLoginModal(true);
+      return;
+    }
+
+    try {
+      // Check if the like already exists
+      const { data: existingLike } = await supabase
+        .from("likes")
+        .select("*")
+        .eq("article_id", articleId)
+        .eq("user_id", session.user.id);
+
+      if (existingLike?.length > 0) {
+        console.log("Already liked");
+        return;
+      }
+
+      await supabase
+        .from("likes")
+        .insert({ article_id: articleId, user_id: session.user.id });
+
+      setLikes((prev) => ({
+        ...prev,
+        [articleId]: (prev[articleId] || 0) + 1,
+      }));
+    } catch (err) {
+      console.error("Failed to like article:", err.message);
+    }
+  };
 
   const handlePreviousDay = () => {
     const previousDate = new Date(currentDate);
@@ -119,79 +177,49 @@ const NBAHome = () => {
     <div>
       <NBAHeader />
 
-      <div className="live-games-wrapper">
-        <button className="arrow-button left-arrow" onClick={handlePreviousDay}>
-          &#8592;
-        </button>
-        <div className="live-games-row">
-          {loading ? (
-            <p>Loading games...</p>
-          ) : liveGames.length > 0 ? (
-            liveGames.map((game) => {
-              const visitorScores = game.scores.visitors.linescore || ["-", "-", "-", "-"];
-              const homeScores = game.scores.home.linescore || ["-", "-", "-", "-"];
-
-              return (
-                <div key={game.id} className="game-card-horizontal">
-                  <div className="team-row-horizontal">
-                    <img src={game.teams.visitors.logo} className="team-logo" alt="Visitor Team Logo" />
-                    <span className="team-abbreviation">{game.teams.visitors.code}</span>
-                    <div className="team-quarters">
-                      <span>{isGameLive(game) && <span className="blinking-light"></span>}{/* Live Game Indicator */}{getFormattedDate(game.date.start)}</span>
-                      <div className="quarters-label">
-                        <span>Q1</span>
-                        <span>Q2</span>
-                        <span>Q3</span>
-                        <span>Q4</span>
-                      </div>
-                      <div className="quarters-scores">
-                        <span>{visitorScores[0]}</span>
-                        <span>{visitorScores[1]}</span>
-                        <span>{visitorScores[2]}</span>
-                        <span>{visitorScores[3]}</span>
-                      </div>
-                    </div>
-                    <span className="team-visitor-score">{game.scores.visitors.points}</span>
-                  </div>
-                  <div className="team-row-horizontal">
-              
-                    <img src={game.teams.home.logo} alt={game.teams.home.name} className="team-logo" />
-                    <span className="team-abbreviation">{game.teams.home.code}</span>
-                    <div className="team-quarters">
-                      <div className="quarters-scores">
-                        <span>{homeScores[0]}</span>
-                        <span>{homeScores[1]}</span>
-                        <span>{homeScores[2]}</span>
-                        <span>{homeScores[3]}</span>
-                      </div>
-                    </div>
-                    <span className="team-score">{game.scores.home.points}</span>
-                  </div>
-                </div>
-              );
-            })
-          ) : (
-            <p>No games available for the selected date</p>
-          )}
+      {/* Login Modal */}
+      {showLoginModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Please Log In</h3>
+            <p>You need to log in to like or comment on articles.</p>
+            <button onClick={() => navigate("/user/signin")}>Log In</button>
+            <button onClick={() => navigate("/user/signup")}>Sign Up</button>
+            <button onClick={() => setShowLoginModal(false)}>Cancel</button>
+          </div>
         </div>
-        <button className="arrow-button right-arrow" onClick={handleNextDay}>
-          &#8594;
-        </button>
-      </div>
+      )}
 
       <div className="news-section">
         <h2>NBA Latest News</h2>
         {newsArticles.length > 0 ? (
           newsArticles.map((article) => (
             <div key={article.id || article.title} className="news-card">
-              <a href={article.url} target="_blank" rel="noopener noreferrer" className="news-title">
-                <h3>{article.title}</h3>
-              </a>
+              <h3>{article.title}</h3>
               <p className="news-source">{article.source}</p>
+              <button onClick={() => handleLike(article.id)}>
+                Like ({likes[article.id] || 0})
+              </button>
+              <div className="comments-section">
+                <h4>Comments:</h4>
+                {comments[article.id]?.map((comment) => (
+                  <p key={comment.id}>{comment.content}</p>
+                ))}
+                <textarea
+                  placeholder="Add a comment..."
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleCommentSubmit(article.id, e.target.value);
+                      e.target.value = "";
+                    }
+                  }}
+                ></textarea>
+              </div>
             </div>
           ))
         ) : (
-          <p className="no-articles-message">No articles available</p>
+          <p>No articles available</p>
         )}
       </div>
     </div>

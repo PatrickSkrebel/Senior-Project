@@ -1,0 +1,33 @@
+.live-game-container {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+  }
+  
+  .teams {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .team {
+    width: 45%;
+    border: 1px solid black;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+  }
+  
+  .player {
+    margin-bottom: 10px;
+  }
+  
+  .simulate-play-button,
+  .reset-game-button {
+    padding: 10px 20px;
+    background-color: blue;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 20px;
+  }
+  

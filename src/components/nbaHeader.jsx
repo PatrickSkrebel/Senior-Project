@@ -148,8 +148,8 @@ const NBAHeader = () => {
           )}
         </div>
       </nav>
-      <div className="nba-header__profile">
-        <Link to="/user/profile">
+      <div className="header__profile">
+        <Link to="/user/signin">
           <FaUserCircle size={24} />
         </Link>
       </div>

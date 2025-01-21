@@ -184,9 +184,9 @@ const CreateJoinLeague = () => {
       <FantasyHeader />
       <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
         <h1>Create or Join a League</h1>
+        <p>Must be signed in</p>
         {error && <p style={{ color: "red" }}>{error}</p>}
         <div style={{ marginBottom: "20px" }}>
-          <h2>Create a League</h2>
           <label>League Name</label>
           <input
             type="text"

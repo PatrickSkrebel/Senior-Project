@@ -1,0 +1,235 @@
+/* General Styling */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f7f7f7;
+    margin: 0;
+    padding: 0;
+    color: #333;
+  }
+  
+  .nfl-header {
+    text-align: center;
+    background-color: #002244;
+    color: #ffffff;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-bottom: 5px solid #d50a0a;
+  }
+  
+  .nfl-header h1 {
+    font-size: 2.5em;
+    margin: 0;
+  }
+  
+  .nfl-header h2 {
+    font-size: 1.2em;
+    margin-top: 10px;
+    font-weight: 300;
+  }
+  
+  /* Wrapper for games and navigation */
+  .live-games-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+  
+  .live-games-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    margin: 20px 0;
+  }
+  
+  .arrow-button {
+    position: fixed; /* Position relative to the viewport */
+    top: 40%; /* Adjust the vertical position to make it higher */
+    transform: translateY(-50%); /* Centering adjustment */
+    background-color: #002244;
+    color: #ffffff;
+    border: none;
+    border-radius: 50%;
+    font-size: 1.5em;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+  }
+  
+  .arrow-button.left-arrow {
+    left: 10px; /* Align to the left of the screen */
+  }
+  
+  .arrow-button.right-arrow {
+    right: 10px; /* Align to the right of the screen */
+  }
+  
+  .arrow-button:hover {
+    background-color: #d50a0a;
+  }
+  
+  /* Game Card Styling */
+  .game-card-horizontal {
+    background-color: #ffffff;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    width: 300px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .game-card-horizontal:hover {
+    transform: scale(1.05);
+    box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.2);
+  }
+  
+  .team-row-horizontal {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #ccc;
+  }
+  
+  .team-row-horizontal:last-child {
+    border-bottom: none;
+  }
+  
+  .team-logo {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    margin-right: 10px;
+  }
+  
+  .team-abbreviation {
+    font-size: 1.2em;
+    font-weight: bold;
+  }
+  
+  .team-quarters {
+    flex: 1;
+    text-align: center;
+  }
+  
+  .team-score {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #002244;
+  }
+  
+  .team-visitor-score {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #d50a0a;
+  }
+  
+  /* Loading and Error Messages */
+  p {
+    text-align: center;
+    font-size: 1.2em;
+    margin: 10px;
+  }
+  
+  p.error-message {
+    color: #d50a0a;
+    font-weight: bold;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .game-card-horizontal {
+      width: 100%;
+    }
+  
+    .team-row-horizontal {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  
+    .team-logo {
+      margin-bottom: 10px;
+    }
+  
+    .arrow-button {
+      font-size: 1.2em;
+      width: 40px;
+      height: 40px;
+    }
+  }
+  
+/* General Styling for Team Row */
+.team-row-horizontal {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 15px;
+    border-bottom: 1px solid #ccc;
+  }
+  
+  /* Team Info */
+  .team-info {
+    flex: 1;
+  }
+  
+  .team-short-names {
+    font-weight: bold;
+    font-size: 1.2em;
+    color: #002244;
+    margin: 0;
+    text-align: left;
+  }
+  
+  /* Quarters Section */
+  .quarters-section {
+    flex: 1;
+    text-align: center;
+  }
+  
+  /* Quarter Labels */
+  .quarters-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    font-size: 12px;
+    color: #333;
+    font-weight: bold;
+    text-align: center;
+    gap: 15px;
+  }
+  
+  /* Quarter Scores */
+  .quarters-scores {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #666;
+    text-align: center;
+    gap: 15px;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .team-row-horizontal {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  
+    .quarters-section {
+      width: 100%;
+    }
+  
+    .quarters-label,
+    .quarters-scores {
+      justify-content: space-around;
+    }
+  }
+  
+  

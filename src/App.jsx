@@ -10,9 +10,11 @@ import SignUp from "./pages/User/sign-up";
 import AuthProvider from "./providers/AuthProvider";
 import ErrorBoundary from "./providers/ErrorBoundary";
 
+// Common nba pages
 import Standings from "./pages/NBA/Standings";
 import LeagueLeaders from "./pages/NBA/LeagueLeaders";
 
+// Player pages
 import Roster from './pages/NBA/Players/Roster';
 import PlayerStats from './pages/NBA/Players/playerStats';
 
@@ -22,11 +24,13 @@ import League from './pages/NBA/Fantasy/League';
 import FantasyRoster from './pages/NBA/Fantasy/RosterPage';
 import DraftScreen from './pages/NBA/Fantasy/Draft';
 
+// Test
+import Test from './pages/NBA/Fantasy/livegames/gamesBeingPlayed';
+
 const App = () => {
   return (
     <>
     <ErrorBoundary>
-      <AuthProvider>
         <Routes>
           {/* Main Home Page screen to view all sports */}
           <Route path="/" element={<Home />} />
@@ -51,13 +55,13 @@ const App = () => {
           <Route path="/nba/players/roster/:id" element={<Roster />}/>
           <Route path="/nba/players/playerStats/:id" element={<PlayerStats />}/>
           <Route path="nba/fantasy/draft/:leagueId" element={<DraftScreen />} />
+          <Route path="/test" element={<Test />} />
 
-          {/*
-          <Route path="/nba/games" element={<Games />} />
-          <Route path="/nba/teams/:teamId" element={<Team />} />
-          */}
+
+          { /* All screens for NFL */}
+
+          
         </Routes>
-      </AuthProvider>
       </ErrorBoundary>
     </>
   );

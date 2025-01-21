@@ -1,0 +1,198 @@
+.player-card-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    background-color: #f4f4f4;
+    padding: 20px;
+    border-radius: 20px;
+    box-shadow: rgba(0, 0, 0, 0.2) 0px 10px 20px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  .player-profile {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .profile-picture img {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 20px;
+  }
+  
+  .profile-details {
+    flex: 1;
+  }
+  
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+  }
+  
+  .averages {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 10px;
+    background-color: #00b894;
+    color: white;
+    border-radius: 10px;
+    padding: 10px;
+  }
+  
+  .averages p {
+    margin: 0;
+  }
+  
+  .stats-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 50px;
+  }
+  
+  .stats-table th,
+  .stats-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+  }
+  
+  .stats-table th {
+    background-color: #007bff;
+    color: white;
+  }
+  
+  .stats-table tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+  
+  .stats-table tr:hover {
+    background-color: #ddd;
+  }
+  
+
+ /* Player Card */
+.card {
+    --bg: #e8e8e8;
+    --contrast: #e2e0e0;
+    --grey: #93a1a1;
+    position: relative;
+    padding: 9px;
+    background-color: var(--bg);
+    border-radius: 35px;
+    box-shadow: rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset;
+  }
+  
+  .card-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-conic-gradient(var(--bg) 0.0000001%, var(--grey) 0.000104%) 60% 60%/600% 600%;
+    filter: opacity(10%) contrast(105%);
+  }
+  
+  .card-inner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    width: 200px;
+    height: 254px;
+    background-color: var(--contrast);
+    border-radius: 30px;
+  }
+  
+  .player-image {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  
+  /* Card Details */
+  .card-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+  }
+  
+  .player-name {
+    font-size: 1.8em;
+    font-weight: bold;
+    margin: 10px 0;
+    color: #333;
+  }
+  
+  .player-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    width: 100%;
+  }
+  
+  .container {
+    display: flex;
+    flex-direction: column; /* Stacks items vertically */
+    align-items: center; /* Centers items horizontally */
+  }
+  
+  .name-box {
+    background-color: #444;
+    color: white;
+    text-align: center;
+    font-size: 1.2em;
+    font-weight: bold;
+    width: 100%; /* Makes it span across the top */
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .row {
+    display: flex;
+    justify-content: center; /* Centers items horizontally */
+    gap: 5px; /* Adds spacing between boxes */
+    width: 100%; /* Ensures rows span the container */
+  }
+  
+  .info-box {
+    background-color: #aba2a2;
+    color: white;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 0.9em;
+    width: 100px; /* Adjust as needed */
+    height: 80px; /* Adjust as needed */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .info-box p {
+    margin: 5px 0;
+    font-weight: bold;
+  }
+  
+  .info-box p:first-child {
+    font-size: 0.8em;
+    text-transform: uppercase;
+    color: #000000;
+  }
+  
+  .game-stats-header {
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.8em; /* Adjust size as needed */
+    margin: 20px 0; /* Adds spacing above and below */
+    color: #333; /* Adjust color as needed */
+  }
+  
