@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import NBAHeader from "../../../components/nbaHeader";
-import '../../../css/playerStats.css';
+//import '../../../css/playerStats.css';
 import defaultIcon from "../../../assets/Present-icon.jpg";
 
 const PlayerStats = () => {
@@ -115,11 +115,6 @@ const PlayerStats = () => {
           <div className="card">
             <div className="card-overlay"></div>
             <div className="card-inner">
-              <img
-                src={playerInfo?.team?.logo || defaultIcon}
-                alt="Player"
-                className="player-image"
-              />
             </div>
           </div>
           <div className="player-details">
