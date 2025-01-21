@@ -190,6 +190,28 @@ const NBAHome = () => {
         </div>
       )}
 
+      <div className="live-games-wrapper">
+        <button className="arrow-button left-arrow" onClick={handlePreviousDay}>
+          &#8592;
+        </button>
+        <div className="live-games-row">
+          {loading ? (
+            <p>Loading games...</p>
+          ) : liveGames.length > 0 ? (
+            liveGames.map((game) => (
+              <div key={game.id} className="game-card-horizontal">
+                {/* Game display code */}
+              </div>
+            ))
+          ) : (
+            <p>No games available for the selected date</p>
+          )}
+        </div>
+        <button className="arrow-button right-arrow" onClick={handleNextDay}>
+          &#8594;
+        </button>
+      </div>
+
       <div className="news-section">
         <h2>NBA Latest News</h2>
         {newsArticles.length > 0 ? (
