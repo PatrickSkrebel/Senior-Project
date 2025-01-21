@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import NBAHeader from "../../../components/nbaHeader";
-//import '../../../css/playerStats.css';
-import defaultIcon from "../../../assets/Present-icon.jpg";
+import '../../../css/playerStats.css';
+//import defaultIcon from "../../../assets/Present-icon.jpg";
 
 const PlayerStats = () => {
   const { id } = useParams(); // Get player ID from the URL
@@ -115,6 +115,7 @@ const PlayerStats = () => {
           <div className="card">
             <div className="card-overlay"></div>
             <div className="card-inner">
+
             </div>
           </div>
           <div className="player-details">
