@@ -26,6 +26,7 @@ import DraftScreen from './pages/NBA/Fantasy/Draft';
 
 // Test
 import Test from './pages/NBA/Fantasy/livegames/gamesBeingPlayed';
+import Excel from './pages/Test';
 
 const App = () => {
   return (
@@ -56,6 +57,7 @@ const App = () => {
           <Route path="/nba/players/playerStats/:id" element={<PlayerStats />}/>
           <Route path="nba/fantasy/draft/:leagueId" element={<DraftScreen />} />
           <Route path="/test" element={<Test />} />
+          <Route path="/excel" element={<Excel />} />
 
 
           { /* All screens for NFL */}

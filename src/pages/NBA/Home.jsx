@@ -168,11 +168,18 @@ const NBAHome = () => {
     setCurrentDate(nextDate);
   };
 
-  const getFormattedDate = (dateString) => {
+  const formatGameDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+    
+    // Options for formatting: Weekday, Month, Day, and Time
+    return date.toLocaleString("en-US", {
+      month: "short",  // e.g., Jan
+      day: "numeric",  // e.g., 24
+      hour: "numeric", // e.g., 7 PM
+      minute: "2-digit", // e.g., 07
+    });
   };
-
+  
   return (
     <div>
       <NBAHeader />
@@ -195,17 +202,40 @@ const NBAHome = () => {
           &#8592;
         </button>
         <div className="live-games-row">
-          {loading ? (
-            <p>Loading games...</p>
-          ) : liveGames.length > 0 ? (
-            liveGames.map((game) => (
-              <div key={game.id} className="game-card-horizontal">
-                {/* Game display code */}
+        {liveGames.map((game) => (
+            <div key={game.id} className="game-card-horizontal">
+              {/* Game Time */}
+              <div className="game-time">
+                <p>{formatGameDate(game.date.start)}</p>
               </div>
-            ))
-          ) : (
-            <p>No games available for the selected date</p>
-          )}
+              {/* Visitor Team */}
+              <div className="team-row-horizontal">
+                <img
+                  src={game.teams.visitors.logo}
+                  alt={game.teams.visitors.nickname}
+                  className="team-logo"
+                />
+                <span className="team-abbreviation">{game.teams.visitors.code}</span>
+                <div className="team-quarters">
+                  <span>{game.scores.visitors.linescore.join(" | ")}</span>
+                </div>
+                <span className="team-score">{game.scores.visitors.points}</span>
+              </div>
+              {/* Home Team */}
+              <div className="team-row-horizontal">
+                <img
+                  src={game.teams.home.logo}
+                  alt={game.teams.home.nickname}
+                  className="team-logo"
+                />
+                <span className="team-abbreviation">{game.teams.home.code}</span>
+                <div className="team-quarters">
+                  <span>{game.scores.home.linescore.join(" | ")}</span>
+                </div>
+                <span className="team-score">{game.scores.home.points}</span>
+              </div>
+            </div>
+          ))}
         </div>
         <button className="arrow-button right-arrow" onClick={handleNextDay}>
           &#8594;
