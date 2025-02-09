@@ -31,6 +31,7 @@ import Excel from './pages/Test';
 const App = () => {
   return (
     <>
+    <AuthProvider>
     <ErrorBoundary>
         <Routes>
           {/* Main Home Page screen to view all sports */}
@@ -65,6 +66,7 @@ const App = () => {
           
         </Routes>
       </ErrorBoundary>
+      </AuthProvider>
     </>
   );
 };
