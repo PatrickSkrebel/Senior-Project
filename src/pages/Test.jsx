@@ -1,54 +1,57 @@
-import React, { useState } from "react";
-import * as XLSX from "xlsx";
+import { useState } from "react";
+import Papa from "papaparse";
 
-function TEST() {
-    const [data, setData] = useState([]);
+function excel() {
+  const [data, setData] = useState([]);
 
-    const handleFileUpload = (event) => {
-        const reader = new FileReader();
-        reader.readAsBinaryString(event.target.files[0]);
-        reader.onload = (event) => {
-            const data = e.target.results;
-            const workbook = XLSX.read(data, { type: "binary" });
-            const sheetName = workbook.SheetNames[0];
-            const sheet = workbook.Sheets[sheetName];
-            const parsedData = XLSX.utils.sheet_to_json(sheet);
-            setData(parsedData);
-        };
-    }
+  const handleFile = (e) => {
+    const file = e.target.files[0];
+    Papa.parse(file, {
+      header: true,
+      complete: (result) => {
+        setData(result.data);
+      },
+    });
+  }
 
-  return (
+  return(
     <div>
-        <input 
-            type="file"
-            accept=".xlsx, .xls"
-            onchange={handleFileUpload}
-        />
+      <input type="file" accept=".csv" onChange={handleFile}/>
 
-        {data.length > 0 && (
-            <table>
-                <thead>
-                    <tr>
-                        {Object.keys(data[0]).map((key) => (
-                            <th key={key}>{key}</th>
-                        ))}
-                    </tr>
-                </thead>
-                <tbody>
-                    {data.map((row, index) => (
-                        <tr key={index}>
-                            {Object.values(row).map((value) => (
-                                <td>{value}</td>
-                            ))}
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        )}
-
-      <h1>TEST</h1>
+      {data.length ? (
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Wins</th>
+              <th>Losses</th>
+              <th>win%</th>
+              <th>conference</th>
+              <th>div</th>
+              <th>gb</th>
+              <th>streak</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((row, i) => (
+              <tr key={i}>
+                <td>{row.name}</td>
+                <td>{row.wins}</td>
+                <td>{row.losses}</td>
+                <td>{row.winPercentage}</td>
+                <td>{row.conference}</td>
+                <td>{row.division}</td>
+                <td>{row.gamesBehind}</td>
+                <th>{row.streak}</th>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <p>No data</p>
+      )}
     </div>
-  );
+  )
 }
 
-export default TEST;
+export default excel;

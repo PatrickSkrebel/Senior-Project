@@ -15,10 +15,9 @@ const NBAHome = () => {
   const [comments, setComments] = useState({});
   const [likes, setLikes] = useState({});
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const { session } = useAuth(); // Use session from AuthProvider
+  const { session } = useAuth();
   const navigate = useNavigate();
 
-  // Utility to check if a game is live
   const isGameLive = (game) => {
     const currentTime = new Date();
     const gameStartTime = new Date(game.date.start);
@@ -43,7 +42,9 @@ const NBAHome = () => {
     }
   };
 
-  // Fetch Live Games
+
+  
+
   const fetchLiveGames = async (date) => {
     setLoading(true);
     setError("");
@@ -80,6 +81,7 @@ const NBAHome = () => {
   };
 
   // Fetch Comments and Likes from Supabase
+
   const fetchInteractions = async () => {
     try {
       const { data: commentsData } = await supabase.from("comments").select("*");
@@ -103,59 +105,18 @@ const NBAHome = () => {
     }
   };
 
+
+
   useEffect(() => {
-    fetchNBANews();
     fetchLiveGames(currentDate);
+    fetchNBANews();
     fetchInteractions();
+    const interval = setInterval(() => fetchLiveGames(currentDate), 300000);
+    return () => clearInterval(interval);
+
   }, [currentDate]);
 
-  const handleCommentSubmit = async (articleId, content) => {
-    if (!session?.user?.id) {
-      setShowLoginModal(true);
-      return;
-    }
-    try {
-      await supabase
-        .from("comments")
-        .insert({ article_id: articleId, user_id: session.user.id, content });
-      fetchInteractions(); // Refresh comments
-    } catch (err) {
-      console.error("Failed to submit comment:", err.message);
-    }
-  };
-
-  const handleLike = async (articleId) => {
-    if (!session) {
-      setShowLoginModal(true);
-      return;
-    }
-
-    try {
-      // Check if the like already exists
-      const { data: existingLike } = await supabase
-        .from("likes")
-        .select("*")
-        .eq("article_id", articleId)
-        .eq("user_id", session.user.id);
-
-      if (existingLike?.length > 0) {
-        console.log("Already liked");
-        return;
-      }
-
-      await supabase
-        .from("likes")
-        .insert({ article_id: articleId, user_id: session.user.id });
-
-      setLikes((prev) => ({
-        ...prev,
-        [articleId]: (prev[articleId] || 0) + 1,
-      }));
-    } catch (err) {
-      console.error("Failed to like article:", err.message);
-    }
-  };
-
+  
   const handlePreviousDay = () => {
     const previousDate = new Date(currentDate);
     previousDate.setDate(previousDate.getDate() - 1);
@@ -179,35 +140,27 @@ const NBAHome = () => {
       minute: "2-digit", // e.g., 07
     });
   };
-  
+
   return (
     <div>
       <NBAHeader />
-
-      {/* Login Modal */}
-      {showLoginModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h3>Please Log In</h3>
-            <p>You need to log in to like or comment on articles.</p>
-            <button onClick={() => navigate("/user/signin")}>Log In</button>
-            <button onClick={() => navigate("/user/signup")}>Sign Up</button>
-            <button onClick={() => setShowLoginModal(false)}>Cancel</button>
-          </div>
-        </div>
-      )}
 
       <div className="live-games-wrapper">
         <button className="arrow-button left-arrow" onClick={handlePreviousDay}>
           &#8592;
         </button>
         <div className="live-games-row">
-        {liveGames.map((game) => (
-            <div key={game.id} className="game-card-horizontal">
-              {/* Game Time */}
-              <div className="game-time">
-                <p>{formatGameDate(game.date.start)}</p>
+          {liveGames.map((game) => (
+            
+            <div key={game.id} className="game-card-horizontal">              
+              {/* Blinking red light for live games next to the score */}
+              <div className="game-status">
+                {isGameLive(game) && <div className="blinking-red-light"></div>}
+                <div className="game-time">
+                  <p>{formatGameDate(game.date.start)}</p>
+                </div>
               </div>
+
               {/* Visitor Team */}
               <div className="team-row-horizontal">
                 <img
@@ -217,10 +170,18 @@ const NBAHome = () => {
                 />
                 <span className="team-abbreviation">{game.teams.visitors.code}</span>
                 <div className="team-quarters">
-                  <span>{game.scores.visitors.linescore.join(" | ")}</span>
+                  <span>
+                      {game.scores.visitors.linescore[0] || " 0"} |
+                      {game.scores.visitors.linescore[1] || " 0"} |
+                      {game.scores.visitors.linescore[2] || " 0"} | 
+                      {game.scores.visitors.linescore[3] || " 0"}
+                  </span> 
                 </div>
+
                 <span className="team-score">{game.scores.visitors.points}</span>
+
               </div>
+
               {/* Home Team */}
               <div className="team-row-horizontal">
                 <img
@@ -230,9 +191,14 @@ const NBAHome = () => {
                 />
                 <span className="team-abbreviation">{game.teams.home.code}</span>
                 <div className="team-quarters">
-                  <span>{game.scores.home.linescore.join(" | ")}</span>
+                  <span>
+                    {game.scores.home.linescore[0] || " 0"} |
+                    {game.scores.home.linescore[1] || " 0"} |
+                    {game.scores.home.linescore[2] || " 0"} | 
+                    {game.scores.home.linescore[3] || " 0"}
+                  </span>                                   
                 </div>
-                <span className="team-score">{game.scores.home.points}</span>
+                <span className="team-score">{game.scores.home.points}</span>               
               </div>
             </div>
           ))}

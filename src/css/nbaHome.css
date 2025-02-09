@@ -59,8 +59,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
-  padding: 5px 10px;
+  width: 75%;
 }
 
 .team-logo {
@@ -74,7 +73,7 @@ body {
   font-size: 12px;
   font-weight: bold;
   flex-grow: 1;
-  text-align: left;
+  text-align: center;
 }
 
 .team-quarters {
@@ -115,7 +114,7 @@ body {
   transform: translateY(-50%);
   z-index: 10;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  margin-top: 120px;
+  margin-top: 160px;
 }
 
 .left-arrow {
@@ -243,13 +242,16 @@ body {
   border: 1px solid #ccc;
   border-radius: 5px;
 }
+.game-status {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Adjust spacing between red light and text */
+}
 
 .game-time {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: bold;
   color: #555;
-  margin-bottom: 10px;
-  text-align: center;
 }
 
 .live-games-grid {
@@ -296,3 +298,25 @@ body {
   text-decoration: underline;
 }
 
+.blinking-red-light {
+  width: 10px;
+  height: 10px;
+  background-color: red;
+  border-radius: 50%;
+  animation: blink 1s infinite;
+  margin-right: auto;
+  margin-left: 10px;
+}
+
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.team-score {
+  font-size: 15px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+}
