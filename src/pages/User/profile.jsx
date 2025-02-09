@@ -18,6 +18,7 @@ const Profile = () => {
 
   // Fetch user profile
   useEffect(() => {
+    console.log("Fetching profile...");
     const fetchProfile = async () => {
       if (session) {
         const { data, error } = await supabase
