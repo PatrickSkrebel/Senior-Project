@@ -12,11 +12,35 @@ const DraftScreen = () => {
   const [members, setMembers] = useState([]);
   const [draftOrder, setDraftOrder] = useState([]); // List of members in draft order
   const [currentPickIndex, setCurrentPickIndex] = useState(0); // Which index in draftOrder is up
+  
   const [players, setPlayers] = useState([]); // List of available players
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [error, setError] = useState(""); //  Error message
   const [loading, setLoading] = useState(false); // Loading state
   const [draftPicks, setDraftPicks] = useState([]); // List of all draft picks
+
+  useEffect(() => {
+    // Subscribe to real-time updates on the "DraftPicks" table
+    const subscription = supabase
+      .channel("draft_picks")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "DraftPicks" },
+        async (payload) => {
+          console.log("New draft pick:", payload.new);
+  
+          // Refresh draft picks and update the current pick index
+          fetchDraftPicks();
+          setCurrentPickIndex((prevIndex) => prevIndex + 1);
+        }
+      )
+      .subscribe();
+  
+    // Cleanup function
+    return () => {
+      supabase.removeChannel(subscription);
+    };
+  }, [leagueId]);
 
   const fetchLeagueData = async () => {
     try {
@@ -112,12 +136,14 @@ const DraftScreen = () => {
       // 1) Insert draft pick into database
       const { error: draftError } = await supabase
         .from("DraftPicks")
-        .insert([{
-          league_id: leagueId,
-          user_id: currentUserId,
-          player_id: selectedPlayer.id,
-          pick_number: pickNumber,
-        }]);
+        .insert([
+          {
+            league_id: leagueId,
+            user_id: currentUserId,
+            player_id: selectedPlayer.id,
+            pick_number: pickNumber,
+          },
+        ]);
   
       if (draftError) throw draftError;
   
@@ -129,7 +155,17 @@ const DraftScreen = () => {
   
       if (updateError) throw updateError;
   
-      // 3) Update local state
+      // 3) Move to the next user's turn
+      const nextPickIndex = (currentPickIndex + 1) % draftOrder.length; // Cycles back to the start
+      setCurrentPickIndex(nextPickIndex);
+  
+      // 4) Update `currentPickIndex` in the database to ensure all users see updates
+      await supabase
+        .from("FantasyLeagues")
+        .update({ currentPickIndex: nextPickIndex })
+        .eq("id", leagueId);
+  
+      // 5) Update local state
       setDraftPicks((prev) => [
         ...prev,
         {
@@ -140,7 +176,6 @@ const DraftScreen = () => {
         },
       ]);
       setPlayers((prev) => prev.filter((p) => p.id !== selectedPlayer.id));
-      setCurrentPickIndex((prev) => prev + 1);
       setSelectedPlayer(null);
     } catch (err) {
       console.error("Error drafting player:", err);
