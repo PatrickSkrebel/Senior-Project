@@ -3,320 +3,191 @@ import { useParams } from "react-router-dom";
 import { supabase } from "../../../lib/supabaseClient";
 import NBAHeader from "../../../components/nbaHeader";
 import FantasyHeader from "../../../components/nbaFantasyHeader";
-import { useAuth } from "../../../providers/AuthProvider"; // If you have an auth context
+import { useAuth } from "../../../providers/AuthProvider";
+import '../../../css/draft.css';
+
+// Define positions & round limit
+const positions = ["PG", "SG", "SF", "PF", "C"];
+const totalRounds = 14;
 
 const DraftScreen = () => {
   const { leagueId } = useParams();
-  const { session } = useAuth(); // Current logged-in user
-  const [league, setLeague] = useState(null); // League info
+  const { session } = useAuth();
+  const [league, setLeague] = useState(null);
   const [members, setMembers] = useState([]);
-  const [draftOrder, setDraftOrder] = useState([]); // List of members in draft order
-  const [currentPickIndex, setCurrentPickIndex] = useState(0); // Which index in draftOrder is up
-  
-  const [players, setPlayers] = useState([]); // List of available players
+  const [draftOrder, setDraftOrder] = useState([]);
+  const [currentPickIndex, setCurrentPickIndex] = useState(0);
+  const [currentRound, setCurrentRound] = useState(1);
+  const [players, setPlayers] = useState([]);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
-  const [error, setError] = useState(""); //  Error message
-  const [loading, setLoading] = useState(false); // Loading state
-  const [draftPicks, setDraftPicks] = useState([]); // List of all draft picks
+  const [searchQuery, setSearchQuery] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [draftPicks, setDraftPicks] = useState([]);
+  const [timeLeft, setTimeLeft] = useState(120);
 
   useEffect(() => {
-    // Subscribe to real-time updates on the "DraftPicks" table
-    const subscription = supabase
-      .channel("draft_picks")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "DraftPicks" },
-        async (payload) => {
-          console.log("New draft pick:", payload.new);
-  
-          // Refresh draft picks and update the current pick index
-          fetchDraftPicks();
-          setCurrentPickIndex((prevIndex) => prevIndex + 1);
-        }
-      )
-      .subscribe();
-  
-    // Cleanup function
-    return () => {
-      supabase.removeChannel(subscription);
-    };
+    fetchLeagueData();
+    fetchDraftPicks();
   }, [leagueId]);
+
+  useEffect(() => {
+    if (timeLeft > 0 && draftOrder[currentPickIndex]?.userId === session?.user?.id) {
+      const timer = setInterval(() => setTimeLeft(timeLeft - 1), 1000);
+      return () => clearInterval(timer);
+    } else if (timeLeft === 0) {
+      autoPickPlayer();
+    }
+  }, [timeLeft, currentPickIndex]);
 
   const fetchLeagueData = async () => {
     try {
       setLoading(true);
-
-      // 1) Fetch league info
-      const { data: leagueData, error: leagueError } = await supabase
-        .from("FantasyLeagues")
-        .select("*")
-        .eq("id", leagueId)
-        .single();
-        setCurrentPickIndex(leagueData.currentPickIndex || 0);
-      if (leagueError) throw leagueError;
+      const { data: leagueData } = await supabase.from("FantasyLeagues").select("*").eq("id", leagueId).single();
       setLeague(leagueData);
+      setCurrentPickIndex(leagueData.currentPickIndex || 0);
+      setCurrentRound(leagueData.currentRound || 1);
 
-      // 2) Fetch members who joined this league
-      const { data: membersData, error: membersError } = await supabase
+      const { data: membersData } = await supabase
         .from("FantasyLeague")
-        .select("userId, created_at, profiles!FantasyLeague_userId_fkey(username)")
+        .select("userId, profiles!FantasyLeague_userId_fkey(username)")
         .eq("league_id", leagueId)
         .order("created_at", { ascending: true });
-      if (membersError) throw membersError;
+
       setMembers(membersData);
 
-      // 3) Generate draft order (e.g., by join order)
-      //    Here we just use the order from membersData, but you could randomize it.
-      //    We'll store an array of { userId, username } in state
       const order = membersData.map(m => ({
         userId: m.userId,
         username: m.profiles?.username || "Unknown",
       }));
       setDraftOrder(order);
 
-      // 4) Fetch the current pick index from the league data
-      // Fetch available players for this league
-      const { data: playersData, error: playersError } = await supabase
-        .from("Players")
-        .select("*")
-        .or(`draftedInLeagueId.is.null,draftedInLeagueId.eq.${leagueId}`); // Include undrafted or drafted in this league
-
-      if (playersError) throw playersError;
+      const { data: playersData } = await supabase.from("Players").select("*").or(`draftedInLeagueId.is.null,draftedInLeagueId.eq.${leagueId}`);
       setPlayers(playersData);
-
-
-      
-
     } catch (err) {
       console.error(err);
-      setError("Failed to load league data. Please try again later.");
+      setError("Failed to load league data.");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchLeagueData();
-  }, [leagueId]);
+  const fetchDraftPicks = async () => {
+    try {
+      const { data: picksData } = await supabase
+        .from("DraftPicks")
+        .select("pick_number, round, user_id, player_id, user:profiles(username), player:Players(firstName, lastName, position)")
+        .eq("league_id", leagueId)
+        .order("pick_number", { ascending: true });
 
-  // Helper: Check if the draft date/time has passed
-  const isDraftStarted = () => {
-    if (!league) return false; // Ensure league data exists
-    const draftDateStr = league.draftDate; // e.g., "2025-01-31"
-    const draftTimeStr = league.time;      // e.g., "13:00"
-    if (!draftDateStr || !draftTimeStr) return false;
-  
-    const draftDateTime = new Date(`${draftDateStr}T${draftTimeStr}`);
-    const now = new Date();
-    return now >= draftDateTime; // True if the current time is after the draft start time
+      setDraftPicks(picksData);
+    } catch (err) {
+      console.error("Error fetching draft picks:", err);
+      setError("Failed to load draft picks.");
+    }
   };
-  
 
-  // Handler: When user picks a player
   const handlePickPlayer = async () => {
-    if (!selectedPlayer) {
-      setError("Please select a player first.");
-      return;
-    }
-  
-    const currentUserId = session?.user?.id;
-    const currentUserInOrder = draftOrder[currentPickIndex]?.userId;
-  
-    if (currentUserId !== currentUserInOrder) {
-      setError("It's not your turn.");
-      return;
-    }
-  
+    if (!selectedPlayer) return setError("Please select a player first.");
+    if (draftOrder[currentPickIndex]?.userId !== session?.user?.id) return setError("It's not your turn.");
+
     try {
       setLoading(true);
       setError("");
-  
-      const pickNumber = currentPickIndex + 1;
-  
-      // 1) Insert draft pick into database
-      const { error: draftError } = await supabase
-        .from("DraftPicks")
-        .insert([
-          {
-            league_id: leagueId,
-            user_id: currentUserId,
-            player_id: selectedPlayer.id,
-            pick_number: pickNumber,
-          },
-        ]);
-  
-      if (draftError) throw draftError;
-  
-      // 2) Mark the player as drafted in the current league
-      const { error: updateError } = await supabase
-        .from("Players")
-        .update({ draftedInLeagueId: leagueId })
-        .eq("id", selectedPlayer.id);
-  
-      if (updateError) throw updateError;
-  
-      // 3) Move to the next user's turn
-      const nextPickIndex = (currentPickIndex + 1) % draftOrder.length; // Cycles back to the start
-      setCurrentPickIndex(nextPickIndex);
-  
-      // 4) Update `currentPickIndex` in the database to ensure all users see updates
+
+      const pickNumber = draftPicks.length + 1;
       await supabase
-        .from("FantasyLeagues")
-        .update({ currentPickIndex: nextPickIndex })
-        .eq("id", leagueId);
-  
-      // 5) Update local state
-      setDraftPicks((prev) => [
-        ...prev,
-        {
-          pickNumber,
-          userId: currentUserId,
-          username: draftOrder[currentPickIndex].username,
-          player: selectedPlayer,
-        },
-      ]);
-      setPlayers((prev) => prev.filter((p) => p.id !== selectedPlayer.id));
+        .from("DraftPicks")
+        .insert([{ league_id: leagueId, user_id: session.user.id, player_id: selectedPlayer.id, pick_number: pickNumber, round: currentRound }]);
+
+      await supabase.from("Players").update({ draftedInLeagueId: leagueId }).eq("id", selectedPlayer.id);
+
+      let nextPickIndex = currentPickIndex + 1;
+      let nextRound = currentRound;
+
+      if (nextPickIndex >= draftOrder.length) {
+        nextPickIndex = 0;
+        nextRound += 1; // Start new round
+      }
+
+      setCurrentPickIndex(nextPickIndex);
+      setCurrentRound(nextRound);
+      setTimeLeft(120);
+
+      await supabase.from("FantasyLeagues").update({ currentPickIndex: nextPickIndex, currentRound: nextRound }).eq("id", leagueId);
+
+      setDraftPicks([...draftPicks, { pickNumber, round: currentRound, userId: session.user.id, username: "You", player: selectedPlayer }]);
+      setPlayers(players.filter(p => p.id !== selectedPlayer.id));
       setSelectedPlayer(null);
     } catch (err) {
       console.error("Error drafting player:", err);
-      setError("Failed to draft the player. Please try again.");
+      setError("Failed to draft player.");
     } finally {
       setLoading(false);
     }
   };
-  
-  
-  
-  
-  const fetchDraftPicks = async () => {
-    try {
-      const { data: picksData, error: picksError } = await supabase
-        .from("DraftPicks")
-        .select("pick_number, user_id, player_id, user:profiles(username), player:Players(firstName, lastName)")
-        .eq("league_id", leagueId)
-        .order("pick_number", { ascending: true });
-  
-      if (picksError) throw picksError;
-  
-      setDraftPicks(
-        picksData.map((pick) => ({
-          pickNumber: pick.pick_number,
-          userId: pick.user_id,
-          username: pick.user?.username || "Unknown",
-          player: pick.player,
-        }))
-      );
-    } catch (err) {
-      console.error("Error fetching draft picks:", err);
-      setError("Failed to load draft picks. Please try again later.");
-    }
-  };
-  
-  useEffect(() => {
-    const fetchData = async () => {
-      await fetchLeagueData();  // Fetch league data and members
-      await fetchDraftPicks();  // Fetch saved draft picks
-    };
-  
-    fetchData();
-  }, [leagueId]);
-  
-  
-
-  // Function that displays all picks in the draft order
-  const renderDraftPicks = () => {
-    return (
-      <div>
-        <h3>Draft Picks</h3>
-        <ol>
-          {draftPicks.map((pick) => (
-            <li key={pick.pickNumber}>
-              {pick.username} selected {pick.player.firstName} {pick.player.lastName}
-            </li>
-          ))}
-        </ol>
-      </div>
-    );
-  };
-  
-
-  // Just a convenience for readability
-  const currentPicker = draftOrder[currentPickIndex]?.username || "N/A";
 
   return (
     <>
       <NBAHeader />
       <FantasyHeader />
-      <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-        <h1>Draft for {league?.leagueName || "League"}</h1>
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        {loading && <p>Loading...</p>}
+      <div className="draft-container">
+        <h1 className="draft-header">Draft for {league?.leagueName || "League"}</h1>
+        {error && <p className="error-message">{error}</p>}
+        {loading && <p className="loading-message">Loading...</p>}
 
-        {/* If league is loaded, display details */}
-        {league && (
-          <>
-            <p>Draft Date: {league.draftDate}</p>
-            <p>Draft Time: {league.time}</p>
-            <p>Max Teams: {league.numTeams}</p>
-          </>
-        )}
+        <div className="draft-layout">
+          {/* Left Panel - League Members */}
+          <div className="league-members">
+            <h3>League Members</h3>
+            <ul>
+              {draftOrder.map((member, index) => (
+                <li key={member.userId} className={index === currentPickIndex ? "current-turn" : ""}>
+                  {member.username} {index === currentPickIndex && "⬅ (Current Pick)"}
+                </li>
+              ))}
+            </ul>
+          </div>
 
-        {/* Check if the draft has started */}
-        {!league ? (
-          <p>Loading league...</p>
-        ) : !isDraftStarted() ? (
-          <p>The draft has not started yet. Please come back at the scheduled time.</p>
-        ) : (
-          <>
-            {/* The draft is active */}
-            <h2>Current Turn: {currentPicker}</h2>
+          {/* Center Panel - Draft Info */}
+          <div className="draft-info">
+            <h2>Current Turn: {draftOrder[currentPickIndex]?.username || "N/A"}</h2>
+            <h3>Time Left: {timeLeft}s</h3>
 
-            {/* Show draft order */}
-            <h3>Draft Order:</h3>
+            {/* Round Tabs */}
+            <div className="round-tabs">
+              {Array.from({ length: totalRounds }, (_, i) => i + 1).map(round => (
+                <button key={round} className={`tab-button ${round === currentRound ? "active" : ""}`} onClick={() => setCurrentRound(round)}>
+                  Round {round}
+                </button>
+              ))}
+            </div>
+
+            <h3>Drafted Players - Round {currentRound}</h3>
             <ol>
-              {draftOrder.map((m, index) => (
-                <li key={m.userId}>
-                  {m.username} {index === currentPickIndex && "← (Current)"}
+              {draftPicks.filter(pick => pick.round === currentRound).map(pick => (
+                <li key={pick.pickNumber}>
+                  {pick.username} selected {pick.player.firstName} {pick.player.lastName} ({pick.player.position})
                 </li>
               ))}
             </ol>
 
-            {/* Player selection */}
-            <div style={{ marginTop: "20px" }}>
             <h3>Available Players</h3>
-              <select
-                value={selectedPlayer?.id || ""}
-                onChange={(e) => {
-                  const playerId = e.target.value;
+            <input type="text" placeholder="Search players..." className="search-bar" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
 
-                  // Find the chosen player from the players list
-                  const chosenPlayer = players.find((pl) => pl.id === playerId);
-
-                  if (chosenPlayer) {
-                    setSelectedPlayer(chosenPlayer);
-                  } else {
-                    setError("Selected player not found in the list.");
-                  }
-                }}
-              >
-                <option value="">Select a player</option>
-                {players.map((player) => (
-                  <option key={player.id} value={player.id}>
-                    {player.firstName} {player.lastName} (Team {player.teamId})
-                  </option>
-                ))}
-              </select>
-
-
-              <button onClick={handlePickPlayer} disabled={!selectedPlayer}>
-                Draft Player
-              </button>
+            <div className="player-list">
+              {players.map(player => (
+                <div key={player.id} onClick={() => setSelectedPlayer(player)} className="player-item">
+                  {player.firstName} {player.lastName} ({player.position})
+                </div>
+              ))}
             </div>
 
-            {/* Display drafted players */}
-            {renderDraftPicks()}
-          </>
-        )}
+            <button onClick={handlePickPlayer} disabled={!selectedPlayer} className="draft-button">
+              Draft Player
+            </button>
+          </div>
+        </div>
       </div>
     </>
   );
