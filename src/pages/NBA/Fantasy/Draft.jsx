@@ -4,9 +4,8 @@ import { supabase } from "../../../lib/supabaseClient";
 import NBAHeader from "../../../components/nbaHeader";
 import FantasyHeader from "../../../components/nbaFantasyHeader";
 import { useAuth } from "../../../providers/AuthProvider";
-import '../../../css/draft.css';
+import "../../../css/draft.css";
 
-// Define positions & round limit
 const positions = ["PG", "SG", "SF", "PF", "C"];
 const totalRounds = 14;
 
@@ -26,11 +25,15 @@ const DraftScreen = () => {
   const [draftPicks, setDraftPicks] = useState([]);
   const [timeLeft, setTimeLeft] = useState(120);
 
+  // Fetch league data, draft picks, and subscribe to changes
   useEffect(() => {
     fetchLeagueData();
     fetchDraftPicks();
+    const unsubscribe = subscribeToChanges();
+    return () => unsubscribe();
   }, [leagueId]);
 
+  // Timer logic
   useEffect(() => {
     if (timeLeft > 0 && draftOrder[currentPickIndex]?.userId === session?.user?.id) {
       const timer = setInterval(() => setTimeLeft(timeLeft - 1), 1000);
@@ -40,13 +43,21 @@ const DraftScreen = () => {
     }
   }, [timeLeft, currentPickIndex]);
 
+  // Fetch league data, including currentPickIndex and currentRound
   const fetchLeagueData = async () => {
     try {
       setLoading(true);
-      const { data: leagueData } = await supabase.from("FantasyLeagues").select("*").eq("id", leagueId).single();
-      setLeague(leagueData);
-      setCurrentPickIndex(leagueData.currentPickIndex || 0);
-      setCurrentRound(leagueData.currentRound || 1);
+      const { data: leagueData } = await supabase
+        .from("FantasyLeagues")
+        .select("*")
+        .eq("id", leagueId)
+        .single();
+
+      if (leagueData) {
+        setLeague(leagueData);
+        setCurrentPickIndex(leagueData.currentPickIndex || 0);
+        setCurrentRound(leagueData.currentRound || 1);
+      }
 
       const { data: membersData } = await supabase
         .from("FantasyLeague")
@@ -62,7 +73,11 @@ const DraftScreen = () => {
       }));
       setDraftOrder(order);
 
-      const { data: playersData } = await supabase.from("Players").select("*").or(`draftedInLeagueId.is.null,draftedInLeagueId.eq.${leagueId}`);
+      const { data: playersData } = await supabase
+        .from("Players")
+        .select("*")
+        .or(`draftedInLeagueId.is.null,draftedInLeagueId.eq.${leagueId}`);
+
       setPlayers(playersData);
     } catch (err) {
       console.error(err);
@@ -72,6 +87,7 @@ const DraftScreen = () => {
     }
   };
 
+  // Fetch draft picks
   const fetchDraftPicks = async () => {
     try {
       const { data: picksData } = await supabase
@@ -87,44 +103,115 @@ const DraftScreen = () => {
     }
   };
 
+  // Subscribe to realtime changes
+  const subscribeToChanges = () => {
+    const draftPicksChannel = supabase
+      .channel('draft-picks-changes')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'DraftPicks', filter: `league_id=eq.${leagueId}` },
+        (payload) => {
+          setDraftPicks(prev => [...prev, payload.new]);
+          setPlayers(prevPlayers => prevPlayers.filter(p => p.id !== payload.new.player_id));
+        }
+      )
+      .subscribe();
+
+    const leagueChannel = supabase
+      .channel('league-changes')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'FantasyLeagues', filter: `id=eq.${leagueId}` },
+        (payload) => {
+          setLeague(payload.new);
+          setCurrentPickIndex(payload.new.currentPickIndex);
+          setCurrentRound(payload.new.currentRound);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(draftPicksChannel);
+      supabase.removeChannel(leagueChannel);
+    };
+  };
+
+  // Handle player pick
   const handlePickPlayer = async () => {
     if (!selectedPlayer) return setError("Please select a player first.");
     if (draftOrder[currentPickIndex]?.userId !== session?.user?.id) return setError("It's not your turn.");
-
+  
     try {
       setLoading(true);
       setError("");
-
+  
       const pickNumber = draftPicks.length + 1;
-      await supabase
+  
+      // Insert the draft pick
+      const { data: newDraftPick, error: insertError } = await supabase
         .from("DraftPicks")
-        .insert([{ league_id: leagueId, user_id: session.user.id, player_id: selectedPlayer.id, pick_number: pickNumber, round: currentRound }]);
-
-      await supabase.from("Players").update({ draftedInLeagueId: leagueId }).eq("id", selectedPlayer.id);
-
+        .insert([{
+          league_id: leagueId,
+          user_id: session.user.id,
+          player_id: selectedPlayer.id,
+          pick_number: pickNumber,
+          round: currentRound,
+          drafted_at: new Date().toISOString(),
+        }])
+        .single();
+  
+      if (insertError) throw insertError;
+  
+      // Mark the player as drafted in the league
+      await supabase
+        .from("Players")
+        .update({ draftedInLeagueId: leagueId })
+        .eq("id", selectedPlayer.id);
+  
+      // Update the draft order
       let nextPickIndex = currentPickIndex + 1;
       let nextRound = currentRound;
-
+  
       if (nextPickIndex >= draftOrder.length) {
         nextPickIndex = 0;
         nextRound += 1; // Start new round
       }
-
+  
+      // Update the league state in the database
+      const { error: updateError } = await supabase
+        .from("FantasyLeagues")
+        .update({ currentPickIndex: nextPickIndex, currentRound: nextRound })
+        .eq("id", leagueId);
+  
+      if (updateError) {
+        console.error("Error updating FantasyLeagues:", updateError);
+        throw updateError;
+      }
+  
+      // Update local state
       setCurrentPickIndex(nextPickIndex);
       setCurrentRound(nextRound);
       setTimeLeft(120);
-
-      await supabase.from("FantasyLeagues").update({ currentPickIndex: nextPickIndex, currentRound: nextRound }).eq("id", leagueId);
-
-      setDraftPicks([...draftPicks, { pickNumber, round: currentRound, userId: session.user.id, username: "You", player: selectedPlayer }]);
-      setPlayers(players.filter(p => p.id !== selectedPlayer.id));
       setSelectedPlayer(null);
+      setPlayers(prevPlayers => prevPlayers.filter(p => p.id !== selectedPlayer.id));
     } catch (err) {
       console.error("Error drafting player:", err);
       setError("Failed to draft player.");
     } finally {
       setLoading(false);
     }
+  };
+
+  // Auto-pick a player if time runs out
+  const autoPickPlayer = async () => {
+    if (draftOrder[currentPickIndex]?.userId !== session?.user?.id) return;
+
+    const availablePlayers = players.filter(player => !player.isDrafted);
+    if (availablePlayers.length === 0) return;
+
+    const randomPlayer = availablePlayers[Math.floor(Math.random() * availablePlayers.length)];
+    setSelectedPlayer(randomPlayer);
+    await handlePickPlayer();
   };
 
   return (
@@ -137,7 +224,6 @@ const DraftScreen = () => {
         {loading && <p className="loading-message">Loading...</p>}
 
         <div className="draft-layout">
-          {/* Left Panel - League Members */}
           <div className="league-members">
             <h3>League Members</h3>
             <ul>
@@ -149,12 +235,10 @@ const DraftScreen = () => {
             </ul>
           </div>
 
-          {/* Center Panel - Draft Info */}
           <div className="draft-info">
             <h2>Current Turn: {draftOrder[currentPickIndex]?.username || "N/A"}</h2>
             <h3>Time Left: {timeLeft}s</h3>
 
-            {/* Round Tabs */}
             <div className="round-tabs">
               {Array.from({ length: totalRounds }, (_, i) => i + 1).map(round => (
                 <button key={round} className={`tab-button ${round === currentRound ? "active" : ""}`} onClick={() => setCurrentRound(round)}>
