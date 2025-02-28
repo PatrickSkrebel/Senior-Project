@@ -92,18 +92,36 @@ const DraftScreen = () => {
     try {
       const { data: picksData } = await supabase
         .from("DraftPicks")
-        .select("pick_number, round, user_id, player_id, user:profiles(username), player:Players(firstName, lastName, position)")
+        .select(`
+          pick_number, round, user_id, player_id,
+          user:profiles(username),
+          player:Players(id, firstName, lastName, position)
+        `)
         .eq("league_id", leagueId)
         .order("pick_number", { ascending: true });
-
-      setDraftPicks(picksData);
+  
+      // Ensure each pick has a player before setting state
+      const validPicks = picksData.map(pick => ({
+        ...pick,
+        player: pick.player || { firstName: "Unknown", lastName: "", position: "N/A" } // Default fallback
+      }));
+  
+      setDraftPicks(validPicks);
     } catch (err) {
       console.error("Error fetching draft picks:", err);
       setError("Failed to load draft picks.");
     }
   };
+  
 
-  // Subscribe to realtime changes
+  useEffect(() => {
+    fetchLeagueData();
+    fetchDraftPicks();
+  
+    const unsubscribe = subscribeToChanges();
+    return () => unsubscribe();
+  }, [leagueId]);
+  
   const subscribeToChanges = () => {
     const draftPicksChannel = supabase
       .channel('draft-picks-changes')
@@ -111,36 +129,37 @@ const DraftScreen = () => {
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'DraftPicks', filter: `league_id=eq.${leagueId}` },
         (payload) => {
-          setDraftPicks(prev => [...prev, payload.new]);
-          setPlayers(prevPlayers => prevPlayers.filter(p => p.id !== payload.new.player_id));
+          setDraftPicks(prev => [...prev, payload.new]); // Update draft picks list
+          setPlayers(prevPlayers => prevPlayers.filter(p => p.id !== payload.new.player_id)); // Remove drafted player
         }
       )
       .subscribe();
-
+  
     const leagueChannel = supabase
       .channel('league-changes')
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'FantasyLeagues', filter: `id=eq.${leagueId}` },
         (payload) => {
-          setLeague(payload.new);
           setCurrentPickIndex(payload.new.currentPickIndex);
           setCurrentRound(payload.new.currentRound);
         }
       )
       .subscribe();
-
+  
     return () => {
       supabase.removeChannel(draftPicksChannel);
       supabase.removeChannel(leagueChannel);
     };
   };
+  
+  
 
   // Handle player pick
   const handlePickPlayer = async () => {
     if (!selectedPlayer) return setError("Please select a player first.");
     if (draftOrder[currentPickIndex]?.userId !== session?.user?.id) return setError("It's not your turn.");
-  
+    
     try {
       setLoading(true);
       setError("");
@@ -163,10 +182,15 @@ const DraftScreen = () => {
       if (insertError) throw insertError;
   
       // Mark the player as drafted in the league
-      await supabase
+      const { error: updateError } = await supabase
         .from("Players")
         .update({ draftedInLeagueId: leagueId })
         .eq("id", selectedPlayer.id);
+  
+      if (updateError) throw updateError;
+  
+      // Remove drafted player from the available players list
+      setPlayers(prevPlayers => prevPlayers.filter(p => p.id !== selectedPlayer.id));
   
       // Update the draft order
       let nextPickIndex = currentPickIndex + 1;
@@ -178,22 +202,18 @@ const DraftScreen = () => {
       }
   
       // Update the league state in the database
-      const { error: updateError } = await supabase
+      const { error: leagueUpdateError } = await supabase
         .from("FantasyLeagues")
         .update({ currentPickIndex: nextPickIndex, currentRound: nextRound })
         .eq("id", leagueId);
   
-      if (updateError) {
-        console.error("Error updating FantasyLeagues:", updateError);
-        throw updateError;
-      }
+      if (leagueUpdateError) throw leagueUpdateError;
   
-      // Update local state
+      // Reset selection and timer
       setCurrentPickIndex(nextPickIndex);
       setCurrentRound(nextRound);
       setTimeLeft(120);
       setSelectedPlayer(null);
-      setPlayers(prevPlayers => prevPlayers.filter(p => p.id !== selectedPlayer.id));
     } catch (err) {
       console.error("Error drafting player:", err);
       setError("Failed to draft player.");
@@ -201,6 +221,7 @@ const DraftScreen = () => {
       setLoading(false);
     }
   };
+  
 
   // Auto-pick a player if time runs out
   const autoPickPlayer = async () => {
@@ -213,6 +234,8 @@ const DraftScreen = () => {
     setSelectedPlayer(randomPlayer);
     await handlePickPlayer();
   };
+
+  
 
   return (
     <>
@@ -239,13 +262,32 @@ const DraftScreen = () => {
             <h2>Current Turn: {draftOrder[currentPickIndex]?.username || "N/A"}</h2>
             <h3>Time Left: {timeLeft}s</h3>
 
-            <div className="round-tabs">
-              {Array.from({ length: totalRounds }, (_, i) => i + 1).map(round => (
-                <button key={round} className={`tab-button ${round === currentRound ? "active" : ""}`} onClick={() => setCurrentRound(round)}>
-                  Round {round}
-                </button>
-              ))}
+            <h3>Drafted Players</h3>
+            <div className="drafted-players">
+              {draftOrder.map((member) => {
+                const userDrafts = draftPicks.filter(pick => pick.user_id === member.userId);
+                return (
+                  <div key={member.userId} className="user-draft">
+                    <h4>{member.username}</h4>
+                    {userDrafts.length > 0 ? (
+                      <ul>
+                        {userDrafts.map((pick) => (
+                          <li key={pick.pick_number}>
+                            {pick.player
+                              ? `${pick.player.firstName} ${pick.player.lastName} (${pick.player.position})`
+                              : "Unknown Player"}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p>No players drafted yet</p>
+                    )}
+                  </div>
+                );
+              })}
             </div>
+
+
 
             <h3>Drafted Players - Round {currentRound}</h3>
             <ol>
