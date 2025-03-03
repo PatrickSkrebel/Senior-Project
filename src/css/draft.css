@@ -146,3 +146,43 @@
     background: #bbb;
   }
   
+  .filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .search-bar {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    flex: 1;
+  }
+  
+  .position-filter {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .player-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .player-item {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .player-item.selected {
+    background-color: #e0f7fa;
+  }
+  
+  .player-item:hover {
+    background-color: #f1f1f1;
+  }

@@ -1,0 +1,61 @@
+.league-home-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .league-home-header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .league-overview,
+  .team-summary,
+  .league-standings,
+  .upcoming-matchups,
+  .recent-activity {
+    margin-bottom: 30px;
+  }
+  
+  .team-summary ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .team-summary li {
+    padding: 8px;
+    border: 1px solid #ddd;
+    margin-bottom: 5px;
+    border-radius: 4px;
+  }
+  
+  .league-standings table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .league-standings th,
+  .league-standings td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: left;
+  }
+  
+  .navigation {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  
+  .navigation button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .navigation button:hover {
+    background-color: #0056b3;
+  }

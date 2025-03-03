@@ -23,6 +23,7 @@ import Fantasy from './pages/NBA/Fantasy/HomePage';
 import League from './pages/NBA/Fantasy/League';
 import FantasyRoster from './pages/NBA/Fantasy/RosterPage';
 import DraftScreen from './pages/NBA/Fantasy/Draft';
+import LeagueHome from './pages/NBA/Fantasy/LeagueHome';
 
 // Test
 import Test from './pages/NBA/Fantasy/livegames/gamesBeingPlayed';
@@ -51,12 +52,17 @@ const App = () => {
          
           <Route path="/nba/Standings" element={<Standings />} /> 
           <Route path="/nba/league-leaders" element={<LeagueLeaders />} />
+
           <Route path="/nba/fantasy/HomePage" element={<Fantasy />} />
           <Route path="/nba/fantasy/league" element={<League />} />
           <Route path="/nba/fantasy/rosterpage" element={<FantasyRoster />} />
+          <Route path="nba/fantasy/draft/:leagueId" element={<DraftScreen />} />
+          <Route path="/nba/fantasy/leagueHome/:leagueId" element={<LeagueHome />} />
+
           <Route path="/nba/players/roster/:id" element={<Roster />}/>
           <Route path="/nba/players/playerStats/:id" element={<PlayerStats />}/>
-          <Route path="nba/fantasy/draft/:leagueId" element={<DraftScreen />} />
+
+
           <Route path="/test" element={<Test />} />
           <Route path="/excel" element={<Excel />} />
 

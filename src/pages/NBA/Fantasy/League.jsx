@@ -72,18 +72,18 @@ const CreateJoinLeague = () => {
         setError("Please fill in all required fields (name, draft date, and time).");
         return;
       }
-
+  
       if (!session?.user?.id) {
         setError("User not authenticated. Please log in.");
         return;
       }
-
+  
       const userId = session.user.id;
       const leagueId = uuidv4();
-
+  
       // Generate a random 6-character code
       const leagueCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-
+  
       const { data, error } = await supabase.from("FantasyLeagues").insert([
         {
           id: leagueId,
@@ -91,22 +91,23 @@ const CreateJoinLeague = () => {
           leagueCode,
           numTeams,
           draftDate,
-          time: draftTime, // NEW: inserting the time value
+          time: draftTime,
           user_id: userId,
           open: isOpen,
+          draftStatus: "pending", // Explicitly set draftStatus to "pending"
         },
       ]);
-
+  
       if (error) throw error;
-
+  
       // Clear form
       setLeagueName("");
       setNumTeams(8);
       setDraftDate("");
-      setDraftTime(""); // reset time as well
+      setDraftTime("");
       setIsOpen(true);
       setError("");
-
+  
       // Refresh leagues
       fetchLeagues();
       console.log("League created:", data);
@@ -220,7 +221,6 @@ const CreateJoinLeague = () => {
   return (
     <>
       <NBAHeader />
-      <FantasyHeader />
       <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
         <h1>Create or Join a League</h1>
         <p>Must be signed in</p>

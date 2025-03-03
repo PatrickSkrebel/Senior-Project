@@ -5,6 +5,7 @@ import NBAHeader from "../../../components/nbaHeader";
 import FantasyHeader from "../../../components/nbaFantasyHeader";
 import { useAuth } from "../../../providers/AuthProvider";
 import "../../../css/draft.css";
+import { useNavigate } from "react-router-dom";
 
 const positions = ["PG", "SG", "SF", "PF", "C"];
 const totalRounds = 14;
@@ -24,6 +25,8 @@ const DraftScreen = () => {
   const [loading, setLoading] = useState(false);
   const [draftPicks, setDraftPicks] = useState([]);
   const [timeLeft, setTimeLeft] = useState(120);
+  const [selectedPosition, setSelectedPosition] = useState("All"); // Default: Show all positions
+  const navigate = useNavigate(); // Add useNavigate
 
   // Fetch league data, draft picks, and subscribe to changes
   useEffect(() => {
@@ -32,6 +35,8 @@ const DraftScreen = () => {
     const unsubscribe = subscribeToChanges();
     return () => unsubscribe();
   }, [leagueId]);
+
+  
 
   // Timer logic
   useEffect(() => {
@@ -52,32 +57,40 @@ const DraftScreen = () => {
         .select("*")
         .eq("id", leagueId)
         .single();
-
+  
       if (leagueData) {
         setLeague(leagueData);
         setCurrentPickIndex(leagueData.currentPickIndex || 0);
         setCurrentRound(leagueData.currentRound || 1);
+  
+        // Debugging: Log the draftStatus
+        console.log("Draft Status:", leagueData.draftStatus);
+  
+        // Only redirect if the draft is complete
+        if (leagueData.draftStatus === "complete") {
+          navigate(`/nba/fantasy/leagueHome/${leagueId}`);
+        }
       }
-
+  
       const { data: membersData } = await supabase
         .from("FantasyLeague")
         .select("userId, profiles!FantasyLeague_userId_fkey(username)")
         .eq("league_id", leagueId)
         .order("created_at", { ascending: true });
-
+  
       setMembers(membersData);
-
+  
       const order = membersData.map(m => ({
         userId: m.userId,
         username: m.profiles?.username || "Unknown",
       }));
       setDraftOrder(order);
-
+  
       const { data: playersData } = await supabase
         .from("Players")
         .select("*")
         .or(`draftedInLeagueId.is.null,draftedInLeagueId.eq.${leagueId}`);
-
+  
       setPlayers(playersData);
     } catch (err) {
       console.error(err);
@@ -86,14 +99,16 @@ const DraftScreen = () => {
       setLoading(false);
     }
   };
-
-  // Fetch draft picks
+  
   const fetchDraftPicks = async () => {
     try {
       const { data: picksData } = await supabase
         .from("DraftPicks")
         .select(`
-          pick_number, round, user_id, player_id,
+          pick_number, 
+          round, 
+          user_id, 
+          player_id,
           user:profiles(username),
           player:Players(id, firstName, lastName, position)
         `)
@@ -112,15 +127,7 @@ const DraftScreen = () => {
       setError("Failed to load draft picks.");
     }
   };
-  
 
-  useEffect(() => {
-    fetchLeagueData();
-    fetchDraftPicks();
-  
-    const unsubscribe = subscribeToChanges();
-    return () => unsubscribe();
-  }, [leagueId]);
   
   const subscribeToChanges = () => {
     const draftPicksChannel = supabase
@@ -128,9 +135,25 @@ const DraftScreen = () => {
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'DraftPicks', filter: `league_id=eq.${leagueId}` },
-        (payload) => {
-          setDraftPicks(prev => [...prev, payload.new]); // Update draft picks list
-          setPlayers(prevPlayers => prevPlayers.filter(p => p.id !== payload.new.player_id)); // Remove drafted player
+        async (payload) => {
+          // Fetch the player data for the newly drafted player
+          const { data: playerData } = await supabase
+            .from("Players")
+            .select("*")
+            .eq("id", payload.new.player_id)
+            .single();
+  
+          // Update the draftPicks state with the new pick and player data
+          setDraftPicks(prev => [
+            ...prev,
+            {
+              ...payload.new,
+              player: playerData || { firstName: "Unknown", lastName: "", position: "N/A" },
+            },
+          ]);
+  
+          // Remove the drafted player from the available players list
+          setPlayers(prevPlayers => prevPlayers.filter(p => p.id !== payload.new.player_id));
         }
       )
       .subscribe();
@@ -152,14 +175,106 @@ const DraftScreen = () => {
       supabase.removeChannel(leagueChannel);
     };
   };
-  
-  
 
+  // const handleDraftCompletion = async () => {
+  //   try {
+  //     // Update the draft status to "complete" in the database
+  //     const { error: updateError } = await supabase
+  //       .from("FantasyLeagues")
+  //       .update({ draftStatus: "complete" })
+  //       .eq("id", leagueId);
+  
+  //     if (updateError) throw updateError;
+  
+  //     // Debugging: Log the draft completion
+  //     console.log("Draft completed. Redirecting to LeagueHome...");
+  
+  //     // Redirect to the LeagueHome screen
+  //     navigate(`/nba/fantasy/leagueHome/${leagueId}`);
+  //   } catch (err) {
+  //     console.error("Error completing draft:", err);
+  //     setError("Failed to complete draft.");
+  //   }
+  // };
+  
+  // Check if the draft is complete
+  // useEffect(() => {
+  //   const totalExpectedPicks = draftOrder.length * totalRounds;
+  //   console.log("Total Expected Picks:", totalExpectedPicks);
+  //   console.log("Current Draft Picks:", draftPicks.length);
+  //   console.log("Draft Status:", league?.draftStatus);
+  
+  //   if (draftPicks.length >= totalExpectedPicks && league?.draftStatus !== "complete") {
+  //     console.log("Draft is complete. Updating status...");
+  //     handleDraftCompletion();
+  //   }
+  // }, [draftPicks, draftOrder, league, leagueId, navigate]);
+
+  // Check if the draft is complete
+  const isDraftComplete = draftPicks.length >= draftOrder.length * totalRounds;
+
+  // Redirect to League Home Page if the draft is complete
+  // useEffect(() => {
+  //   if (isDraftComplete) {
+  //     navigate(`/nba/fantasy/leagueHome/${leagueId}`); // Redirect to League Home Page
+  //   }
+  // }, [isDraftComplete, leagueId, navigate]);
+
+  // Fetch league data, draft picks, and subscribe to changes
+  useEffect(() => {
+    fetchLeagueData();
+    fetchDraftPicks();
+    const unsubscribe = subscribeToChanges();
+    return () => unsubscribe();
+  }, [leagueId]);
+
+
+  // Handle how many players are drafted in the league
+  const getPositionCounts = (userId) => {
+    const userDrafts = draftPicks.filter(pick => pick.user_id === userId);
+    const positionCounts = {
+      G: 0, // Guards
+      F: 0, // Forwards
+      C: 0, // Centers
+      SF: 0, // Small Forwards
+    };
+  
+    userDrafts.forEach(pick => {
+      const position = pick.player?.position;
+      if (position in positionCounts) {
+        positionCounts[position]++;
+      }
+    });
+  
+    return positionCounts;
+  };
+  
   // Handle player pick
   const handlePickPlayer = async () => {
     if (!selectedPlayer) return setError("Please select a player first.");
     if (draftOrder[currentPickIndex]?.userId !== session?.user?.id) return setError("It's not your turn.");
-    
+  
+    // Get the current user's position counts
+    const positionCounts = getPositionCounts(session.user.id);
+  
+    // Check if the user has already drafted 14 players
+    if (draftPicks.filter(pick => pick.user_id === session.user.id).length >= 14) {
+      return setError("You have already drafted 14 players.");
+    }
+  
+    // Check if the user has exceeded the allowed number of players for the selected position
+    const position = selectedPlayer.position;
+    const maxPlayersForPosition = {
+      G: 4,
+      F: 4,
+      C: 3,
+      SF: 3,
+    }[position];
+  
+    if (positionCounts[position] >= maxPlayersForPosition) {
+      return setError(`You can only draft ${maxPlayersForPosition} ${position} players.`);
+    }
+  
     try {
       setLoading(true);
       setError("");
@@ -188,6 +303,15 @@ const DraftScreen = () => {
         .eq("id", selectedPlayer.id);
   
       if (updateError) throw updateError;
+  
+      // Update the draftPicks state with the new pick and player data
+      setDraftPicks(prev => [
+        ...prev,
+        {
+          ...newDraftPick,
+          player: selectedPlayer,
+        },
+      ]);
   
       // Remove drafted player from the available players list
       setPlayers(prevPlayers => prevPlayers.filter(p => p.id !== selectedPlayer.id));
@@ -222,7 +346,6 @@ const DraftScreen = () => {
     }
   };
   
-
   // Auto-pick a player if time runs out
   const autoPickPlayer = async () => {
     if (draftOrder[currentPickIndex]?.userId !== session?.user?.id) return;
@@ -235,12 +358,20 @@ const DraftScreen = () => {
     await handlePickPlayer();
   };
 
+  const filteredPlayers = players.filter(player => {
+    // Filter by position
+    const matchesPosition = selectedPosition === "All" || player.position === selectedPosition;
   
+    // Filter by search query (case-insensitive)
+    const matchesSearch = player.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          player.lastName.toLowerCase().includes(searchQuery.toLowerCase());
+  
+    return matchesPosition && matchesSearch;
+  });
 
   return (
     <>
-      <NBAHeader />
-      <FantasyHeader />
+      <NBAHeader />      
       <div className="draft-container">
         <h1 className="draft-header">Draft for {league?.leagueName || "League"}</h1>
         {error && <p className="error-message">{error}</p>}
@@ -264,30 +395,39 @@ const DraftScreen = () => {
 
             <h3>Drafted Players</h3>
             <div className="drafted-players">
-              {draftOrder.map((member) => {
-                const userDrafts = draftPicks.filter(pick => pick.user_id === member.userId);
-                return (
-                  <div key={member.userId} className="user-draft">
-                    <h4>{member.username}</h4>
-                    {userDrafts.length > 0 ? (
-                      <ul>
-                        {userDrafts.map((pick) => (
-                          <li key={pick.pick_number}>
-                            {pick.player
-                              ? `${pick.player.firstName} ${pick.player.lastName} (${pick.player.position})`
-                              : "Unknown Player"}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p>No players drafted yet</p>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+            {draftOrder.map((member) => {
+              const userDrafts = draftPicks.filter(pick => pick.user_id === member.userId);
+              return (
+                <div key={member.userId} className="user-draft">
+                  <h4>{member.username}</h4>
+                  {userDrafts.length > 0 ? (
+                    <ul>
+                      {userDrafts.map((pick) => (
+                        <li key={pick.pick_number}>
+                          {pick.player
+                            ? `${pick.player.firstName} ${pick.player.lastName} (${pick.player.position})`
+                            : "Unknown Player"}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>No players drafted yet</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
 
-
+          <div className="position-counts">
+            <h3>Your Position Counts:</h3>
+            <ul>
+              {Object.entries(getPositionCounts(session.user.id)).map(([position, count]) => (
+                <li key={position}>
+                  {position}: {count} / {position === "G" || position === "F" ? 4 : 3}
+                </li>
+              ))}
+            </ul>
+          </div>
 
             <h3>Drafted Players - Round {currentRound}</h3>
             <ol>
@@ -299,15 +439,43 @@ const DraftScreen = () => {
             </ol>
 
             <h3>Available Players</h3>
-            <input type="text" placeholder="Search players..." className="search-bar" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+            <div className="filters">
+            <input
+              type="text"
+              placeholder="Search players..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="search-bar"
+            />
 
-            <div className="player-list">
-              {players.map(player => (
-                <div key={player.id} onClick={() => setSelectedPlayer(player)} className="player-item">
-                  {player.firstName} {player.lastName} ({player.position})
-                </div>
-              ))}
-            </div>
+            <select
+              value={selectedPosition}
+              onChange={(e) => setSelectedPosition(e.target.value)}
+              className="position-filter"
+            >
+              <option value="All">All Positions</option>
+              <option value="G">Guards (G)</option>
+              <option value="F">Small Forward (F)</option>
+              <option value="F-C">Power Forward (F-C)</option>
+              <option value="C">Center (C)</option>
+            </select>
+          </div>
+
+          <div className="player-list">
+          {filteredPlayers.length > 0 ? (
+            filteredPlayers.map(player => (
+              <div
+                key={player.id}
+                onClick={() => setSelectedPlayer(player)}
+                className={`player-item ${selectedPlayer?.id === player.id ? "selected" : ""}`}
+              >
+                {player.firstName} {player.lastName} ({player.position})
+              </div>
+            ))
+          ) : (
+            <p>No players found.</p>
+          )}
+        </div>
 
             <button onClick={handlePickPlayer} disabled={!selectedPlayer} className="draft-button">
               Draft Player
