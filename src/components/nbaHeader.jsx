@@ -109,8 +109,7 @@ const NBAHeader = () => {
   return (
     <header className="nba-header">
       <div className="nba-header__title">
-        <Link to="/" className="nba-header__title-link">Statz</Link> -{" "}
-        <Link to="/nba" className="nba-header__title-link">NBA</Link>
+        <Link to="/" className="nba-header__title-link">Statz</Link>
       </div>
       <nav className="nba-header__nav">
         <Link to="/nba/standings" className="nba-header__link">Standings</Link>

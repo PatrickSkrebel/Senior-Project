@@ -2,8 +2,6 @@ import React from "react";
 import { Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import NBAHome from "./pages/NBA/Home";
-import NFLHome from "./pages/NFL/Home";
-import MLBHome from "./pages/MLB/Home";
 import Profile from "./pages/User/profile";
 import SignIn from "./pages/User/sign-in";
 import SignUp from "./pages/User/sign-up";
@@ -36,7 +34,6 @@ const App = () => {
     <ErrorBoundary>
         <Routes>
           {/* Main Home Page screen to view all sports */}
-          <Route path="/" element={<Home />} />
 
           {/* User Page screens */}
           <Route path="/user/profile" element={<Profile />} />
@@ -44,9 +41,7 @@ const App = () => {
           <Route path="/user/signin" element={<SignIn />} />
 
           {/* Home page for each sport */}
-          <Route path="/nba" element={<NBAHome />} />
-          <Route path="/nfl" element={<NFLHome />} />
-          <Route path="/mlb" element={<MLBHome />} />
+          <Route path="/" element={<NBAHome />} />
 
           {/* All screens for NBA (Commented out for future implementation) */}
          
