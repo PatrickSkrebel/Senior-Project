@@ -28,6 +28,15 @@ const DraftScreen = () => {
   const [selectedPosition, setSelectedPosition] = useState("All"); // Default: Show all positions
   const navigate = useNavigate(); // Add useNavigate
 
+  const [isSessionLoading, setIsSessionLoading] = useState(true);
+  
+  // Set isSessionLoading to false when session is available
+  useEffect(() => {
+    if (session) {
+      setIsSessionLoading(false);
+    }
+  }, [session]);
+
   // Ensure session is not null before accessing session.user
   if (!session) {
     return <p>Loading session...</p>; // Or redirect to login
@@ -171,13 +180,14 @@ const DraftScreen = () => {
           console.log("Subscribed to draft picks changes:", status);
         }
       });
-  
-    const leagueChannel = supabase
+
+      const leagueChannel = supabase
       .channel('league-changes')
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'FantasyLeagues', filter: `id=eq.${leagueId}` },
         (payload) => {
+          console.log("League update payload:", payload); // Debugging
           setCurrentPickIndex(payload.new.currentPickIndex);
           setCurrentRound(payload.new.currentRound);
         }
@@ -195,6 +205,11 @@ const DraftScreen = () => {
       supabase.removeChannel(leagueChannel);
     };
   };
+
+  useEffect(() => {
+    console.log("Current Pick Index:", currentPickIndex);
+    console.log("Current Round:", currentRound);
+  }, [currentPickIndex, currentRound]);
 
   // const handleDraftCompletion = async () => {
   //   try {
@@ -377,18 +392,7 @@ const DraftScreen = () => {
     return matchesPosition && matchesSearch;
   });
 
-  
-    // Check if session is loading
-    // const [isSessionLoading, setIsSessionLoading] = useState(true);
-    const [isSessionLoading, setIsSessionLoading] = useState(true);
-  
-    // Set isSessionLoading to false when session is available
-    useEffect(() => {
-      if (session) {
-        setIsSessionLoading(false);
-      }
-    }, [session]);
-  
+
 
   return (
     <>
