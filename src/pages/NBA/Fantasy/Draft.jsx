@@ -36,26 +36,6 @@ const DraftScreen = () => {
     return () => unsubscribe();
   }, [leagueId]);
 
-  // Ensure session is not null before accessing session.user
-  if (!session) {
-    return <p>Loading session...</p>; // Or redirect to login
-  }
-
-  // Check if session is loading
-  // const [isSessionLoading, setIsSessionLoading] = useState(true);
-  const [isSessionLoading, setIsSessionLoading] = useState(true);
-
-  // Set isSessionLoading to false when session is available
-  useEffect(() => {
-    if (session) {
-      setIsSessionLoading(false);
-    }
-  }, [session]);
-
-  if (isSessionLoading) {
-    return <p>Loading session...</p>;
-  }
-
   // Timer logic
   useEffect(() => {
     if (timeLeft > 0 && draftOrder[currentPickIndex]?.userId === session?.user?.id) {
@@ -388,6 +368,26 @@ const DraftScreen = () => {
   
     return matchesPosition && matchesSearch;
   });
+
+    // Ensure session is not null before accessing session.user
+    if (!session) {
+      return <p>Loading session...</p>; // Or redirect to login
+    }
+  
+    // Check if session is loading
+    // const [isSessionLoading, setIsSessionLoading] = useState(true);
+    const [isSessionLoading, setIsSessionLoading] = useState(true);
+  
+    // Set isSessionLoading to false when session is available
+    useEffect(() => {
+      if (session) {
+        setIsSessionLoading(false);
+      }
+    }, [session]);
+  
+    if (isSessionLoading) {
+      return <p>Loading session...</p>;
+    }
 
   return (
     <>
