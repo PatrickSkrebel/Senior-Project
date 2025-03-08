@@ -186,3 +186,17 @@
   .player-item:hover {
     background-color: #f1f1f1;
   }
+
+  .league-home-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .league-home-button:hover {
+    background-color: #45a049;
+  }

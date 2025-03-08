@@ -418,6 +418,13 @@ const DraftScreen = () => {
             })}
           </div>
 
+                    <button
+            onClick={() => navigate(`/nba/fantasy/leagueHome/${leagueId}`)}
+            className="league-home-button"
+          >
+            Go to League Home
+          </button>
+
           <div className="position-counts">
             <h3>Your Position Counts:</h3>
             <ul>

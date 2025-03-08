@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../../../lib/supabaseClient";
 import NBAHeader from "../../../components/nbaHeader";
-import FantasyHeader from "../../../components/nbaFantasyHeader";
 import { useAuth } from "../../../providers/AuthProvider";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import "../../../css/leagueHome.css";
 
 const LeagueHome = () => {
@@ -11,50 +11,43 @@ const LeagueHome = () => {
   const { session } = useAuth();
   const navigate = useNavigate();
   const [league, setLeague] = useState(null);
-  const [members, setMembers] = useState([]);
-  const [draftPicks, setDraftPicks] = useState([]);
+  const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Fetch league data and draft picks
+  // Lineup state
+  const [startingLineup, setStartingLineup] = useState({
+    PG: null,
+    SG: null,
+    SF: null,
+    PF: null,
+    C: null,
+  });
+  const [flex, setFlex] = useState([]);
+  const [reserves, setReserves] = useState([]);
+
+  // Fetch data when session or leagueId changes
   useEffect(() => {
-    const fetchLeagueData = async () => {
+    if (!session || !session.user) return; // Skip if session is not available
+
+    const fetchData = async () => {
       try {
         setLoading(true);
-
-        // Fetch league details
-        const { data: leagueData } = await supabase
-          .from("FantasyLeagues")
-          .select("*")
-          .eq("id", leagueId)
-          .single();
-
-        if (!leagueData) throw new Error("League not found.");
-        setLeague(leagueData);
-
-        // Fetch league members
-        const { data: membersData } = await supabase
-          .from("FantasyLeague")
-          .select("userId, profiles!FantasyLeague_userId_fkey(username)")
-          .eq("league_id", leagueId);
-
-        setMembers(membersData);
-
-        // Fetch draft picks
-        const { data: picksData } = await supabase
+        const { data: draftPicks, error: fetchError } = await supabase
           .from("DraftPicks")
-          .select(`
-            pick_number, 
-            round, 
-            user_id, 
-            player_id,
-            user:profiles(username),
-            player:Players(id, firstName, lastName, position)
-          `)
+          .select(
+            `pick_number, round, player_id, 
+             player:Players(id, firstName, lastName, position)`
+          )
           .eq("league_id", leagueId)
+          .eq("user_id", session.user.id)
           .order("pick_number", { ascending: true });
 
-        setDraftPicks(picksData);
+        if (fetchError) throw fetchError;
+        if (!draftPicks || draftPicks.length === 0) throw new Error("No players found.");
+
+        setPlayers(draftPicks);
+        assignPlayersToLineup(draftPicks);
       } catch (err) {
         console.error(err);
         setError("Failed to load league data.");
@@ -63,86 +56,167 @@ const LeagueHome = () => {
       }
     };
 
-    fetchLeagueData();
-  }, [leagueId]);
+    fetchData();
+  }, [leagueId, session]);
 
+  // Assign players to lineup, flex, and reserves
+  const assignPlayersToLineup = (draftPicks) => {
+    const lineup = { PG: null, SG: null, SF: null, PF: null, C: null };
+    const flexSpots = [];
+    const bench = [];
+
+    draftPicks.forEach((pick) => {
+      const { position } = pick.player;
+
+      if (position === "G") {
+        if (!lineup.PG) lineup.PG = pick;
+        else if (!lineup.SG) lineup.SG = pick;
+        else flexSpots.push(pick);
+      } else if (position === "F") {
+        if (!lineup.SF) lineup.SF = pick;
+        else if (!lineup.PF) lineup.PF = pick;
+        else flexSpots.push(pick);
+      } else if (position === "F-C") {
+        if (!lineup.PF) lineup.PF = pick;
+        else if (!lineup.C) lineup.C = pick;
+        else flexSpots.push(pick);
+      } else if (position === "C") {
+        if (!lineup.C) lineup.C = pick;
+        else flexSpots.push(pick);
+      } else {
+        flexSpots.push(pick);
+      }
+    });
+
+    setStartingLineup(lineup);
+    setFlex(flexSpots.slice(0, 3));
+    setReserves(flexSpots.slice(3));
+  };
+
+  // Handle drag-and-drop
+  const onDragEnd = (result) => {
+    if (!result.destination) return;
+    const { source, destination } = result;
+
+    // Get source and destination lists
+    const sourceList =
+      source.droppableId === "flex"
+        ? flex
+        : source.droppableId === "reserves"
+        ? reserves
+        : [startingLineup[source.droppableId]];
+    const destinationList =
+      destination.droppableId === "flex"
+        ? flex
+        : destination.droppableId === "reserves"
+        ? reserves
+        : [startingLineup[destination.droppableId]];
+
+    const player = sourceList[source.index];
+
+    // Validate position swap
+    if (destination.droppableId !== "reserves") {
+      const validSwap = validatePosition(destination.droppableId, player);
+      if (!validSwap) return;
+    }
+
+    // Remove player from source
+    if (source.droppableId === "flex") {
+      const updatedFlex = [...flex];
+      updatedFlex.splice(source.index, 1);
+      setFlex(updatedFlex);
+    } else if (source.droppableId === "reserves") {
+      const updatedReserves = [...reserves];
+      updatedReserves.splice(source.index, 1);
+      setReserves(updatedReserves);
+    } else {
+      setStartingLineup((prev) => ({ ...prev, [source.droppableId]: null }));
+    }
+
+    // Add player to destination
+    if (destination.droppableId === "flex") {
+      setFlex([...flex, player]);
+    } else if (destination.droppableId === "reserves") {
+      setReserves([...reserves, player]);
+    } else {
+      setStartingLineup((prev) => ({ ...prev, [destination.droppableId]: player }));
+    }
+  };
+
+  // Validate player position
+  const validatePosition = (position, player) => {
+    const { position: playerPos } = player.player;
+    if (position === "PG" || position === "SG") return playerPos === "G";
+    if (position === "SF" || position === "PF") return playerPos === "F";
+    if (position === "C") return playerPos === "C" || playerPos === "F-C";
+    return true;
+  };
+
+  // Render loading or error state
   if (loading) return <p>Loading...</p>;
-  if (error) return <p className="error-message">{error}</p>;
-
-  // Get the user's team
-  const userTeam = draftPicks.filter(pick => pick.user_id === session?.user?.id);
+  if (error) return <p>{error}</p>;
+  if (!session || !session.user) return <p>Please log in to access the league.</p>;
 
   return (
     <>
       <NBAHeader />
       <div className="league-home-container">
-        <h1 className="league-home-header">{league?.leagueName || "League Home"}</h1>
+        <h1>{league?.leagueName || "League Home"}</h1>
 
-        {/* League Overview */}
-        <div className="league-overview">
-          <h2>League Overview</h2>
-          <p>Commissioner: {league?.commissionerUsername || "N/A"}</p>
-          <p>Members: {members.length}</p>
-          <p>Status: Draft Complete</p>
-        </div>
+        <DragDropContext onDragEnd={onDragEnd}>
+          <h2>Starting Lineup</h2>
+          <div className="lineup-container">
+            {Object.entries(startingLineup).map(([pos, player]) => (
+              <Droppable key={pos} droppableId={pos}>
+                {(provided) => (
+                  <div ref={provided.innerRef} {...provided.droppableProps}>
+                    <h3>{pos}</h3>
+                    {player && (
+                      <Draggable draggableId={player.player.id} index={0}>
+                        {(provided) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                          >
+                            {player.player.firstName} {player.player.lastName} ({player.player.position})
+                          </div>
+                        )}
+                      </Draggable>
+                    )}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            ))}
+          </div>
 
-        {/* Team Summary */}
-        <div className="team-summary">
-          <h2>Your Team</h2>
-          {userTeam.length > 0 ? (
-            <ul>
-              {userTeam.map((pick) => (
-                <li key={pick.player_id}>
-                  {pick.player.firstName} {pick.player.lastName} ({pick.player.position})
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>No players drafted yet.</p>
-          )}
-        </div>
+          <h2>Flex</h2>
+          <Droppable droppableId="flex">
+            {(provided) => (
+              <div ref={provided.innerRef} {...provided.droppableProps}>
+                {flex.map((player, index) => (
+                  <Draggable key={player.player.id} draggableId={player.player.id} index={index}>
+                    {(provided) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                      >
+                        {player.player.firstName} {player.player.lastName} ({player.player.position})
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
 
-        {/* League Standings */}
-        <div className="league-standings">
-          <h2>League Standings</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>Rank</th>
-                <th>Team</th>
-                <th>Points</th>
-              </tr>
-            </thead>
-            <tbody>
-              {members.map((member, index) => (
-                <tr key={member.userId}>
-                  <td>{index + 1}</td>
-                  <td>{member.profiles?.username || "Unknown"}</td>
-                  <td>0</td> {/* Replace with actual points */}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
 
-        {/* Upcoming Matchups */}
-        <div className="upcoming-matchups">
-          <h2>Upcoming Matchups</h2>
-          <p>No matchups scheduled yet.</p> {/* Replace with actual matchups */}
-        </div>
-
-        {/* Recent Activity */}
-        <div className="recent-activity">
-          <h2>Recent Activity</h2>
-          <p>No recent activity.</p> {/* Replace with actual activity feed */}
-        </div>
-
-        {/* Navigation */}
-        <div className="navigation">
-          <button onClick={() => navigate(`/league/${leagueId}/manage`)}>Manage Team</button>
-          <button onClick={() => navigate(`/league/${leagueId}/chat`)}>League Chat</button>
-          <button onClick={() => navigate(`/league/${leagueId}/settings`)}>League Settings</button>
-        </div>
+          <h2>Reserves</h2>
+          
+        </DragDropContext>
       </div>
     </>
   );

@@ -1,4 +1,5 @@
 import React from 'react';
+import NBAHeader from '../components/nbaHeader';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -16,7 +17,11 @@ class ErrorBoundary extends React.Component {
 
   render() {
     if (this.state.hasError) {
-      return <h1>Something went wrong.</h1>;
+      return <>
+      <NBAHeader />
+      <h1>Something went wrong refresh.</h1>;
+      
+      </>
     }
 
     return this.props.children;
