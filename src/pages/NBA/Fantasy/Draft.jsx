@@ -28,6 +28,11 @@ const DraftScreen = () => {
   const [selectedPosition, setSelectedPosition] = useState("All"); // Default: Show all positions
   const navigate = useNavigate(); // Add useNavigate
 
+  // Ensure session is not null before accessing session.user
+  if (!session) {
+    return <p>Loading session...</p>; // Or redirect to login
+  }
+
   // Fetch league data, draft picks, and subscribe to changes
   useEffect(() => {
     fetchLeagueData();
@@ -78,10 +83,10 @@ const DraftScreen = () => {
   
       setMembers(membersData);
   
-      const order = membersData.map(m => ({
+      const order = membersData?.map(m => ({
         userId: m.userId,
         username: m.profiles?.username || "Unknown",
-      }));
+      })) || [];
       setDraftOrder(order);
   
       const { data: playersData } = await supabase
@@ -114,11 +119,10 @@ const DraftScreen = () => {
         .order("pick_number", { ascending: true });
   
       // Ensure each pick has a player before setting state
-      const validPicks = picksData.map(pick => ({
+      const validPicks = picksData?.map(pick => ({
         ...pick,
-        player: pick.player || { firstName: "Unknown", lastName: "", position: "N/A" } // Default fallback
-      }));
-  
+        player: pick.player || { firstName: "Unknown", lastName: "", position: "N/A" },
+      })) || [];
       setDraftPicks(validPicks);
     } catch (err) {
       console.error("Error fetching draft picks:", err);
@@ -134,15 +138,16 @@ const DraftScreen = () => {
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'DraftPicks', filter: `league_id=eq.${leagueId}` },
         async (payload) => {
+          console.log("New draft pick payload:", payload); // Debugging
           try {
             const { data: playerData, error: playerError } = await supabase
               .from("Players")
               .select("*")
               .eq("id", payload.new.player_id)
               .single();
-  
+      
             if (playerError) throw playerError;
-  
+      
             setDraftPicks((prev) => [
               ...prev,
               {
@@ -150,7 +155,7 @@ const DraftScreen = () => {
                 player: playerData || { firstName: "Unknown", lastName: "", position: "N/A" },
               },
             ]);
-  
+      
             setPlayers((prevPlayers) =>
               prevPlayers.filter((p) => p.id !== payload.new.player_id)
             );
@@ -228,20 +233,19 @@ const DraftScreen = () => {
   // Check if the draft is complete
   const isDraftComplete = draftPicks.length >= draftOrder.length * totalRounds;
 
-  // Redirect to League Home Page if the draft is complete
-  // useEffect(() => {
-  //   if (isDraftComplete) {
-  //     navigate(`/nba/fantasy/leagueHome/${leagueId}`); // Redirect to League Home Page
-  //   }
-  // }, [isDraftComplete, leagueId, navigate]);
-
-  // Fetch league data, draft picks, and subscribe to changes
   useEffect(() => {
-    fetchLeagueData();
-    fetchDraftPicks();
-    const unsubscribe = subscribeToChanges();
-    return () => unsubscribe();
-  }, [leagueId]);
+    if (isDraftComplete) {
+      setTimeLeft(0); // Stop the timer
+      return;
+    }
+  
+    if (timeLeft > 0 && draftOrder[currentPickIndex]?.userId === session?.user?.id) {
+      const timer = setInterval(() => setTimeLeft(timeLeft - 1), 1000);
+      return () => clearInterval(timer);
+    } else if (timeLeft === 0) {
+      autoPickPlayer();
+    }
+  }, [timeLeft, currentPickIndex, isDraftComplete]);
 
 
   // Handle how many players are drafted in the league
@@ -266,6 +270,10 @@ const DraftScreen = () => {
   
   // Handle player pick
   const handlePickPlayer = async () => {
+    if (isDraftComplete) {
+      return setError("The draft is already complete.");
+    }
+
     if (!selectedPlayer) return setError("Please select a player first.");
     if (!session || draftOrder[currentPickIndex]?.userId !== session.user?.id) {
       return setError("It's not your turn.");
@@ -349,10 +357,10 @@ const DraftScreen = () => {
   // Auto-pick a player if time runs out
   const autoPickPlayer = async () => {
     if (draftOrder[currentPickIndex]?.userId !== session?.user?.id) return;
-
-    const availablePlayers = players.filter(player => !player.isDrafted);
+  
+    const availablePlayers = players.filter(player => !player.draftedInLeagueId);
     if (availablePlayers.length === 0) return;
-
+  
     const randomPlayer = availablePlayers[Math.floor(Math.random() * availablePlayers.length)];
     setSelectedPlayer(randomPlayer);
     await handlePickPlayer();
@@ -369,10 +377,6 @@ const DraftScreen = () => {
     return matchesPosition && matchesSearch;
   });
 
-    // Ensure session is not null before accessing session.user
-    if (!session) {
-      return <p>Loading session...</p>; // Or redirect to login
-    }
   
     // Check if session is loading
     // const [isSessionLoading, setIsSessionLoading] = useState(true);
@@ -385,9 +389,6 @@ const DraftScreen = () => {
       }
     }, [session]);
   
-    if (isSessionLoading) {
-      return <p>Loading session...</p>;
-    }
 
   return (
     <>
