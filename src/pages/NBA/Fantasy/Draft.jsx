@@ -36,7 +36,25 @@ const DraftScreen = () => {
     return () => unsubscribe();
   }, [leagueId]);
 
-  
+  // Ensure session is not null before accessing session.user
+  if (!session) {
+    return <p>Loading session...</p>; // Or redirect to login
+  }
+
+  // Check if session is loading
+  // const [isSessionLoading, setIsSessionLoading] = useState(true);
+  const [isSessionLoading, setIsSessionLoading] = useState(true);
+
+  // Set isSessionLoading to false when session is available
+  useEffect(() => {
+    if (session) {
+      setIsSessionLoading(false);
+    }
+  }, [session]);
+
+  if (isSessionLoading) {
+    return <p>Loading session...</p>;
+  }
 
   // Timer logic
   useEffect(() => {
@@ -136,27 +154,38 @@ const DraftScreen = () => {
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'DraftPicks', filter: `league_id=eq.${leagueId}` },
         async (payload) => {
-          // Fetch the player data for the newly drafted player
-          const { data: playerData } = await supabase
-            .from("Players")
-            .select("*")
-            .eq("id", payload.new.player_id)
-            .single();
+          try {
+            const { data: playerData, error: playerError } = await supabase
+              .from("Players")
+              .select("*")
+              .eq("id", payload.new.player_id)
+              .single();
   
-          // Update the draftPicks state with the new pick and player data
-          setDraftPicks(prev => [
-            ...prev,
-            {
-              ...payload.new,
-              player: playerData || { firstName: "Unknown", lastName: "", position: "N/A" },
-            },
-          ]);
+            if (playerError) throw playerError;
   
-          // Remove the drafted player from the available players list
-          setPlayers(prevPlayers => prevPlayers.filter(p => p.id !== payload.new.player_id));
+            setDraftPicks((prev) => [
+              ...prev,
+              {
+                ...payload.new,
+                player: playerData || { firstName: "Unknown", lastName: "", position: "N/A" },
+              },
+            ]);
+  
+            setPlayers((prevPlayers) =>
+              prevPlayers.filter((p) => p.id !== payload.new.player_id)
+            );
+          } catch (err) {
+            console.error("Error handling draft pick change:", err);
+          }
         }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (err) {
+          console.error("Error subscribing to draft picks changes:", err);
+        } else {
+          console.log("Subscribed to draft picks changes:", status);
+        }
+      });
   
     const leagueChannel = supabase
       .channel('league-changes')
@@ -168,7 +197,13 @@ const DraftScreen = () => {
           setCurrentRound(payload.new.currentRound);
         }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (err) {
+          console.error("Error subscribing to league changes:", err);
+        } else {
+          console.log("Subscribed to league changes:", status);
+        }
+      });
   
     return () => {
       supabase.removeChannel(draftPicksChannel);
@@ -252,27 +287,8 @@ const DraftScreen = () => {
   // Handle player pick
   const handlePickPlayer = async () => {
     if (!selectedPlayer) return setError("Please select a player first.");
-    if (draftOrder[currentPickIndex]?.userId !== session?.user?.id) return setError("It's not your turn.");
-  
-    // Get the current user's position counts
-    const positionCounts = getPositionCounts(session.user.id);
-  
-    // Check if the user has already drafted 14 players
-    if (draftPicks.filter(pick => pick.user_id === session.user.id).length >= 14) {
-      return setError("You have already drafted 14 players.");
-    }
-  
-    // Check if the user has exceeded the allowed number of players for the selected position
-    const position = selectedPlayer.position;
-    const maxPlayersForPosition = {
-      G: 4,
-      F: 4,
-      C: 3,
-      SF: 3,
-    }[position];
-  
-    if (positionCounts[position] >= maxPlayersForPosition) {
-      return setError(`You can only draft ${maxPlayersForPosition} ${position} players.`);
+    if (!session || draftOrder[currentPickIndex]?.userId !== session.user?.id) {
+      return setError("It's not your turn.");
     }
   
     try {
@@ -284,14 +300,16 @@ const DraftScreen = () => {
       // Insert the draft pick
       const { data: newDraftPick, error: insertError } = await supabase
         .from("DraftPicks")
-        .insert([{
-          league_id: leagueId,
-          user_id: session.user.id,
-          player_id: selectedPlayer.id,
-          pick_number: pickNumber,
-          round: currentRound,
-          drafted_at: new Date().toISOString(),
-        }])
+        .insert([
+          {
+            league_id: leagueId,
+            user_id: session.user.id,
+            player_id: selectedPlayer.id,
+            pick_number: pickNumber,
+            round: currentRound,
+            drafted_at: new Date().toISOString(),
+          },
+        ])
         .single();
   
       if (insertError) throw insertError;
@@ -305,7 +323,7 @@ const DraftScreen = () => {
       if (updateError) throw updateError;
   
       // Update the draftPicks state with the new pick and player data
-      setDraftPicks(prev => [
+      setDraftPicks((prev) => [
         ...prev,
         {
           ...newDraftPick,
@@ -314,7 +332,9 @@ const DraftScreen = () => {
       ]);
   
       // Remove drafted player from the available players list
-      setPlayers(prevPlayers => prevPlayers.filter(p => p.id !== selectedPlayer.id));
+      setPlayers((prevPlayers) =>
+        prevPlayers.filter((p) => p.id !== selectedPlayer.id)
+      );
   
       // Update the draft order
       let nextPickIndex = currentPickIndex + 1;
