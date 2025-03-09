@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabaseClient';
 import '../../css/auth.css';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../components/mainHeader';
+import NBAHeader from '../../components/NBAHeader';
 import { useAuth } from '../../providers/AuthProvider'; // Import the useAuth hook
 
 const SignUp = () => {
@@ -60,7 +61,7 @@ const SignUp = () => {
 
   return (
     <>
-      <Header />
+      <NBAHeader />
       <div className="auth-container">
         <h1>Sign Up</h1>
         {error && <p className="error">{error}</p>}

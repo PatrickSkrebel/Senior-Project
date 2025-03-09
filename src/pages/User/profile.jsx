@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Header from "../../components/mainHeader";
+import NBAHeader from "../../components/NBAHeader";
 import "../../css/profile.css";
 import { useAuth } from "../../providers/AuthProvider";
 import { supabase } from "../../lib/supabaseClient";
@@ -18,7 +18,6 @@ const Profile = () => {
 
   // Fetch user profile
   useEffect(() => {
-    console.log("Fetching profile...");
     const fetchProfile = async () => {
       if (session) {
         const { data, error } = await supabase
@@ -26,17 +25,26 @@ const Profile = () => {
           .select("*")
           .eq("id", session.user.id)
           .single();
-
+  
         if (error) {
           console.error("Error fetching profile:", error.message);
+          setProfile(null); // Ensure profile is set to null on error
         } else {
           setProfile(data);
         }
       }
     };
-
+  
+    const timeoutId = setTimeout(() => {
+      if (!profile) {
+        navigate("/user/signin"); // Redirect to sign-in page after timeout
+      }
+    }, 5000); // 5-second timeout
+  
     fetchProfile();
-  }, [session, setProfile]);
+  
+    return () => clearTimeout(timeoutId); // Cleanup timeout on unmount
+  }, [session, setProfile, navigate, profile]);
 
   // Fetch user leagues (created and joined)
   const fetchUserLeagues = async () => {
@@ -129,7 +137,7 @@ const Profile = () => {
 
   return (
     <>
-      <Header />
+      <NBAHeader />
       <div className="profile-container">
         {/* Profile Info Section */}
         <div className="profile-info">

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../components/mainHeader';
+import NBAHeader from '../../components/NBAHeader';
 import { useAuth } from '../../providers/AuthProvider';
 import '../../css/auth.css';
 
@@ -46,7 +47,7 @@ const SignIn = () => {
 
   return (
     <>
-      <Header />
+      <NBAHeader />
       <div className="auth-container">
         <h1>Sign In</h1>
         {error && <p className="error">{error}</p>}
