@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import '../../css/auth.css';
 import { useNavigate } from 'react-router-dom';
-import Header from '../../components/mainHeader';
 import NBAHeader from '../../components/NBAHeader';
 import { useAuth } from '../../providers/AuthProvider'; // Import the useAuth hook
 
