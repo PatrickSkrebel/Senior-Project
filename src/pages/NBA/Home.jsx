@@ -18,6 +18,9 @@ const NBAHome = () => {
   const { session } = useAuth();
   const navigate = useNavigate();
   const [expandedArticleId, setExpandedArticleId] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Add a loading state
+  const [submitError, setSubmitError] = useState(""); // Add an error state
+  const [submitSuccess, setSubmitSuccess] = useState(false); // Add a success state
 
   const handleGameClick = (gameId) => {
     navigate(`/nba/boxscore/${gameId}`);
@@ -128,6 +131,10 @@ const NBAHome = () => {
       return;
     }
 
+    setIsSubmitting(true); // Start loading
+    setSubmitError(""); // Clear any previous errors
+    setSubmitSuccess(false); // Clear any previous success messages
+
     try {
       const { data, error } = await supabase
         .from("comments")
@@ -143,9 +150,16 @@ const NBAHome = () => {
 
       if (error) throw error;
 
+      console.log("✅ Comment added successfully:", data);
+
       await fetchInteractions(); // Refresh comments
+      setSubmitSuccess(true); // Show success message
+      setTimeout(() => setSubmitSuccess(false), 3000); // Hide success message after 3 seconds
     } catch (err) {
       console.error("❌ Failed to submit comment:", err.message);
+      setSubmitError("Failed to submit comment. Please try again."); // Show error message
+    } finally {
+      setIsSubmitting(false); // Stop loading
     }
   };
 
@@ -304,24 +318,30 @@ const NBAHome = () => {
                 <textarea
                   placeholder="Add a comment..."
                   onKeyDown={async (e) => {
-                    if (e.key === "Enter" && e.target.value.trim()) {
+                    if (e.key === "Enter" && e.target.value.trim() && !isSubmitting) {
                       e.preventDefault();
                       await handleCommentSubmit(articleId, e.target.value);
                       e.target.value = ""; // Clear input
                     }
                   }}
+                  disabled={isSubmitting} // Disable textarea while submitting
                 ></textarea>
                 <button
                   onClick={async () => {
                     const textarea = document.querySelector(".comment-input textarea");
-                    if (textarea.value.trim()) {
+                    if (textarea.value.trim() && !isSubmitting) {
                       await handleCommentSubmit(articleId, textarea.value);
                       textarea.value = ""; // Clear input
                     }
                   }}
+                  disabled={isSubmitting} // Disable button while submitting
                 >
-                  Submit
+                  {isSubmitting ? "Submitting..." : "Submit"}
                 </button>
+
+                {/* Feedback Messages */}
+                {submitError && <p className="error-message">{submitError}</p>}
+                {submitSuccess && <p className="success-message">Comment submitted successfully!</p>}
               </div>
             )}
           </div>
