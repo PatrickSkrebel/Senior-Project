@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import NBAHeader from "../../components/NBAHeader";
+import Header from "../../components/mainHeader";
 import "../../css/profile.css";
 import { useAuth } from "../../providers/AuthProvider";
 import { supabase } from "../../lib/supabaseClient";
@@ -137,7 +137,7 @@ const Profile = () => {
 
   return (
     <>
-      <NBAHeader />
+      <Header />
       <div className="profile-container">
         {/* Profile Info Section */}
         <div className="profile-info">
