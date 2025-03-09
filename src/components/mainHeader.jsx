@@ -13,9 +13,9 @@ const Header = () => {
       </Link>
       
       <nav className="header__nav">
-        <Link to="/nfl" className="header__link header__link--nfl">NFL</Link>
-        <Link to="/mlb" className="header__link header__link--mlb">MLB</Link>
-        <Link to="/nba" className="header__link header__link--nba">NBA</Link>
+        <Link to="/" className="header__link header__link--nfl">NFL</Link>
+        <Link to="/" className="header__link header__link--mlb">MLB</Link>
+        <Link to="/" className="header__link header__link--nba">NBA</Link>
       </nav>
       
       <div className="header__profile">
