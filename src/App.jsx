@@ -8,6 +8,8 @@ import SignUp from "./pages/User/sign-up";
 import AuthProvider from "./providers/AuthProvider";
 import ErrorBoundary from "./providers/ErrorBoundary";
 
+import Boxscore from "./pages/NBA/Players/boxscores";
+
 // Common nba pages
 import Standings from "./pages/NBA/Standings";
 import LeagueLeaders from "./pages/NBA/LeagueLeaders";
@@ -42,6 +44,7 @@ const App = () => {
 
           {/* Home page for each sport */}
           <Route path="/" element={<NBAHome />} />
+          <Route path="/nba/boxscore/:gameId" element={<Boxscore />} />
 
           {/* All screens for NBA (Commented out for future implementation) */}
          

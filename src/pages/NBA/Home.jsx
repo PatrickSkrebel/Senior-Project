@@ -17,6 +17,19 @@ const NBAHome = () => {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const { session } = useAuth();
   const navigate = useNavigate();
+  const [expandedArticleId, setExpandedArticleId] = useState(null);
+
+  const handleGameClick = (gameId) => {
+    navigate(`/nba/boxscore/${gameId}`);
+  };
+
+  const toggleArticle = (articleId) => {
+    setExpandedArticleId((prevId) => (prevId === articleId ? null : articleId));
+  };
+
+  const generateArticleId = (article) => {
+    return article.url || article.id || article.title;
+  };
 
   const isGameLive = (game) => {
     const currentTime = new Date();
@@ -41,9 +54,6 @@ const NBAHome = () => {
       setError("Failed to Load Articles");
     }
   };
-
-
-  
 
   const fetchLiveGames = async (date) => {
     setLoading(true);
@@ -81,31 +91,63 @@ const NBAHome = () => {
   };
 
   // Fetch Comments and Likes from Supabase
-
   const fetchInteractions = async () => {
     try {
       const { data: commentsData } = await supabase.from("comments").select("*");
-      const { data: likesData } = await supabase.from("likes").select("*");
+      const { data: profilesData } = await supabase.from("profiles").select("id, username");
 
-      const organizedComments = commentsData.reduce((acc, comment) => {
-        if (!acc[comment.article_id]) acc[comment.article_id] = [];
-        acc[comment.article_id].push(comment);
+      const profilesMap = profilesData.reduce((acc, profile) => {
+        acc[profile.id] = profile.username;
         return acc;
       }, {});
 
-      const organizedLikes = likesData.reduce((acc, like) => {
-        acc[like.article_id] = (acc[like.article_id] || 0) + 1;
+      const organizedComments = commentsData.reduce((acc, comment) => {
+        const articleId = comment.article_id;
+        if (!acc[articleId]) acc[articleId] = [];
+        acc[articleId].push({
+          ...comment,
+          username: profilesMap[comment.user_id] || "Anonymous",
+        });
         return acc;
       }, {});
 
       setComments(organizedComments);
-      setLikes(organizedLikes);
     } catch (err) {
       console.error("Failed to fetch interactions:", err.message);
     }
   };
 
+  const handleCommentSubmit = async (articleId, content) => {
+    if (!session) {
+      alert("You must be signed in to comment.");
+      return;
+    }
 
+    if (!articleId) {
+      console.error("❌ Missing article ID, comment not saved!");
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from("comments")
+        .insert([
+          {
+            article_id: articleId,
+            user_id: session.user.id,
+            content: content,
+            created_at: new Date().toISOString(),
+          },
+        ])
+        .select();
+
+      if (error) throw error;
+
+      await fetchInteractions(); // Refresh comments
+    } catch (err) {
+      console.error("❌ Failed to submit comment:", err.message);
+    }
+  };
 
   useEffect(() => {
     fetchLiveGames(currentDate);
@@ -113,10 +155,8 @@ const NBAHome = () => {
     fetchInteractions();
     const interval = setInterval(() => fetchLiveGames(currentDate), 300000);
     return () => clearInterval(interval);
-
   }, [currentDate]);
 
-  
   const handlePreviousDay = () => {
     const previousDate = new Date(currentDate);
     previousDate.setDate(previousDate.getDate() - 1);
@@ -131,13 +171,11 @@ const NBAHome = () => {
 
   const formatGameDate = (dateString) => {
     const date = new Date(dateString);
-    
-    // Options for formatting: Weekday, Month, Day, and Time
     return date.toLocaleString("en-US", {
-      month: "short",  // e.g., Jan
-      day: "numeric",  // e.g., 24
-      hour: "numeric", // e.g., 7 PM
-      minute: "2-digit", // e.g., 07
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
     });
   };
 
@@ -151,9 +189,11 @@ const NBAHome = () => {
         </button>
         <div className="live-games-row">
           {liveGames.map((game) => (
-            
-            <div key={game.id} className="game-card-horizontal">              
-              {/* Blinking red light for live games next to the score */}
+            <div
+              key={game.id}
+              className="game-card-horizontal"
+              onClick={() => handleGameClick(game.id)}
+            >
               <div className="game-status">
                 {isGameLive(game) && <div className="blinking-red-light"></div>}
                 <div className="game-time">
@@ -171,15 +211,13 @@ const NBAHome = () => {
                 <span className="team-abbreviation">{game.teams.visitors.code}</span>
                 <div className="team-quarters">
                   <span>
-                      {game.scores.visitors.linescore[0] || " 0"} |
-                      {game.scores.visitors.linescore[1] || " 0"} |
-                      {game.scores.visitors.linescore[2] || " 0"} | 
-                      {game.scores.visitors.linescore[3] || " 0"}
-                  </span> 
+                    {game.scores.visitors.linescore[0] || " 0"} |
+                    {game.scores.visitors.linescore[1] || " 0"} |
+                    {game.scores.visitors.linescore[2] || " 0"} |
+                    {game.scores.visitors.linescore[3] || " 0"}
+                  </span>
                 </div>
-
                 <span className="team-score">{game.scores.visitors.points}</span>
-
               </div>
 
               {/* Home Team */}
@@ -194,12 +232,15 @@ const NBAHome = () => {
                   <span>
                     {game.scores.home.linescore[0] || " 0"} |
                     {game.scores.home.linescore[1] || " 0"} |
-                    {game.scores.home.linescore[2] || " 0"} | 
+                    {game.scores.home.linescore[2] || " 0"} |
                     {game.scores.home.linescore[3] || " 0"}
-                  </span>                                   
+                  </span>
                 </div>
-                <span className="team-score">{game.scores.home.points}</span>               
+                <span className="team-score">{game.scores.home.points}</span>
               </div>
+
+              {/* Hover Text */}
+              <div className="hover-boxscore-text">Boxscore</div>
             </div>
           ))}
         </div>
@@ -209,37 +250,88 @@ const NBAHome = () => {
       </div>
 
       <div className="news-section">
-        <h2>NBA Latest News</h2>
-        {newsArticles.length > 0 ? (
-          newsArticles.map((article) => (
-            <div key={article.id || article.title} className="news-card">
-              <h3>{article.title}</h3>
-              <p className="news-source">{article.source}</p>
-              <button onClick={() => handleLike(article.id)}>
-                Like ({likes[article.id] || 0})
-              </button>
-              <div className="comments-section">
-                <h4>Comments:</h4>
-                {comments[article.id]?.map((comment) => (
-                  <p key={comment.id}>{comment.content}</p>
-                ))}
+  <h2>NBA Latest News</h2>
+  {newsArticles.length > 0 ? (
+    newsArticles.map((article) => {
+      const articleId = generateArticleId(article);
+      const articleComments = comments[articleId] || [];
+
+      return (
+        <div key={articleId} className="news-card">
+          {/* Article Title as a Link */}
+          <a
+            href={article.url || `https://example.com/article/${article.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="article-link"
+          >
+            <h3>{article.title}</h3>
+          </a>
+          <p className="news-source">{article.source}</p>
+
+          {/* Comment Section */}
+          <div className="comments-section">
+            <h4>Comments:</h4>
+
+            {articleComments.length > 0 ? (
+              articleComments.map((comment) => (
+                <div key={comment.id} className="comment">
+                  <div className="user">
+                    {/* User Avatar */}
+                    <div className="user-pic">
+                      <svg fill="none" viewBox="0 0 24 24" height="20" width="20" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linejoin="round" fill="#707277" stroke-linecap="round" stroke-width="2" stroke="#707277" d="M6.57757 15.4816C5.1628 16.324 1.45336 18.0441 3.71266 20.1966C4.81631 21.248 6.04549 22 7.59087 22H16.4091C17.9545 22 19.1837 21.248 20.2873 20.1966C22.5466 18.0441 18.8372 16.324 17.4224 15.4816C14.1048 13.5061 9.89519 13.5061 6.57757 15.4816Z"></path>
+                        <path stroke-width="2" fill="#707277" stroke="#707277" d="M16.5 6.5C16.5 8.98528 14.4853 11 12 11C9.51472 11 7.5 8.98528 7.5 6.5C7.5 4.01472 9.51472 2 12 2C14.4853 2 16.5 4.01472 16.5 6.5Z"></path>
+                      </svg>
+                    </div>
+
+                    {/* User Info and Comment */}
+                    <div className="user-info">
+                      <span>{comment.username}</span>
+                      <p>{new Date(comment.created_at).toLocaleString()}</p>
+                    </div>
+                  </div>
+                  <p className="comment-content">{comment.content}</p>
+                </div>
+              ))
+            ) : (
+              <p className="no-comments-message">No comments yet. Be the first to comment!</p>
+            )}
+
+            {/* Comment Input */}
+            {session && (
+              <div className="comment-input">
                 <textarea
                   placeholder="Add a comment..."
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
+                  onKeyDown={async (e) => {
+                    if (e.key === "Enter" && e.target.value.trim()) {
                       e.preventDefault();
-                      handleCommentSubmit(article.id, e.target.value);
-                      e.target.value = "";
+                      await handleCommentSubmit(articleId, e.target.value);
+                      e.target.value = ""; // Clear input
                     }
                   }}
                 ></textarea>
+                <button
+                  onClick={async () => {
+                    const textarea = document.querySelector(".comment-input textarea");
+                    if (textarea.value.trim()) {
+                      await handleCommentSubmit(articleId, textarea.value);
+                      textarea.value = ""; // Clear input
+                    }
+                  }}
+                >
+                  Submit
+                </button>
               </div>
-            </div>
-          ))
-        ) : (
-          <p>No articles available</p>
-        )}
-      </div>
+            )}
+          </div>
+        </div>
+      );
+    })
+  ) : (
+    <p>No articles available</p>
+  )}
+</div>
     </div>
   );
 };

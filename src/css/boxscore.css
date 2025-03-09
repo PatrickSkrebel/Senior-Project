@@ -1,0 +1,116 @@
+/* General Styling */
+.boxscore-page {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    font-family: 'Arial', sans-serif;
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Game Header */
+  .game-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background-color: #007bff;
+    color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .game-header h1 {
+    font-size: 32px;
+    margin-bottom: 10px;
+  }
+  
+  .game-header h2 {
+    font-size: 24px;
+    margin-bottom: 15px;
+  }
+  
+  .game-header .game-info {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    font-size: 16px;
+  }
+  
+  /* Player Stats */
+  .player-stats {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .stats-container {
+    display: flex;
+    flex-direction: row; /* Default to side-by-side layout */
+    justify-content: space-between;
+    gap: 10px; /* Reduced gap between tables */
+  }
+  
+  .team-stats {
+    flex: 1; /* Each team takes equal width */
+    padding: 15px;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .team-stats h3 {
+    text-align: center;
+    margin-bottom: 15px;
+    font-size: 18px;
+    color: #007bff;
+  }
+  
+  .team-stats table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  
+  .team-stats th,
+  .team-stats td {
+    padding: 8px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .team-stats th {
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+  }
+  
+  .team-stats tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  
+  .team-stats tr:hover {
+    background-color: #f1f1f1;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .stats-container {
+      flex-direction: column; /* Stack tables vertically on smaller screens */
+      gap: 20px; /* Add gap between stacked tables */
+    }
+  
+    .team-stats {
+      width: 100%; /* Full width for each table on smaller screens */
+    }
+  }
+  
+  /* Loading and Error States */
+  .loading,
+  .error,
+  .no-data {
+    text-align: center;
+    font-size: 18px;
+    margin-top: 50px;
+    color: #555;
+  }

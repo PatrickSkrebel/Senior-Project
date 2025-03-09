@@ -20,6 +20,7 @@ body {
 .live-games-row {
   display: flex;
   overflow-x: auto; /* Enable horizontal scrolling */
+  overflow-y: hidden; /* Hide vertical scrollbar */
   width: 100%;
   padding: 10px 0;
   scroll-behavior: smooth; /* Smooth scrolling for better UX */
@@ -27,6 +28,7 @@ body {
   align-items: center;
 }
 
+/* Hide scrollbar for Chrome, Safari, and Opera */
 .live-games-row::-webkit-scrollbar {
   height: 8px; /* Customize scrollbar height */
 }
@@ -320,3 +322,145 @@ body {
   display: flex;
   align-items: center;
 }
+
+
+/* Add these styles to your existing CSS */
+
+.game-card-horizontal {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-width: 220px;
+  border-right: 1px solid #ddd;
+  padding: 10px 5px;
+  background-color: #f9f9f9;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.game-card-horizontal:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.hover-boxscore-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px;
+  font-weight: bold;
+  color: #007bff;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  margin-top: 20px;
+}
+
+.game-card-horizontal:hover .hover-boxscore-text {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Comments Section Styling */
+.comments-section {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.comments-section h4 {
+  margin-bottom: 15px;
+  font-size: 18px;
+  color: #333;
+  font-weight: bold;
+}
+
+.news-card {
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.comments-section {
+  margin-top: 15px;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+}
+
+.comment {
+  margin-bottom: 10px;
+  padding: 10px;
+  background-color: #ffffff;
+  border-radius: 6px;
+  border: 1px solid #eee;
+}
+
+.user {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.user-pic {
+  width: 30px;
+  height: 30px;
+  margin-right: 10px;
+}
+
+.user-info span {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.user-info p {
+  font-size: 12px;
+  color: #666;
+}
+
+.comment-content {
+  font-size: 14px;
+  color: #333;
+}
+
+.comment-input {
+  margin-top: 10px;
+}
+
+.comment-input textarea {
+  width: 100px 0%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.comment-input button {
+  margin-top: 8px;
+  padding: 8px 16px;
+  background-color: #007bff;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.comment-input button:hover {
+  background-color: #0056b3;
+}
+
+.no-comments-message {
+  font-size: 14px;
+  color: #888;
+  text-align: center;
+}
+
+/* ... (existing CSS) */
