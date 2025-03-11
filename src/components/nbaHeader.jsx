@@ -115,7 +115,7 @@ const NBAHeader = () => {
         <Link to="/nba/standings" className="nba-header__link">Standings</Link>
         <Link to="/nba/league-leaders" className="nba-header__link">League Leaders</Link>
         <Link to="/nba/fantasy/league" className="nba-header__link">Fantasy</Link>
-        <Link to="/nba/games" className="nba-header__link">Games</Link>
+        <Link onClick={() => alert("Feature coming soon!")} className="nba-header__link">Games</Link>
         <div className="nba-header__dropdown" ref={dropdownRef}>
           <button onClick={toggleDropdown} className="nba-header__dropdown-button">
             Teams ▾

@@ -13,8 +13,6 @@ const Header = () => {
       </Link>
       
       <nav className="header__nav">
-        <Link to="/" className="header__link header__link--nfl">NFL</Link>
-        <Link to="/" className="header__link header__link--mlb">MLB</Link>
         <Link to="/" className="header__link header__link--nba">NBA</Link>
       </nav>
       
