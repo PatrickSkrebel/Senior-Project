@@ -1,0 +1,82 @@
+/* Container for the entire form */
+.create-league-form {
+    width: 400px;              /* Fixed width for consistent layout */
+    margin: 40px auto;         /* Center horizontally & add top/bottom space */
+    padding: 30px;
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-family: Arial, sans-serif;
+    text-align: center;        /* Center headings & button */
+  }
+  
+  /* Optional heading style */
+  .create-league-form h2 {
+    margin-bottom: 20px;
+    color: #333;
+  }
+  
+  /* Group styling for each label + input row */
+  .form-group {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    align-items: center;       /* Center the label + input in the container */
+  }
+  
+  /* Label styling */
+  .form-group label {
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+    align-self: flex-start;    /* Keep label left-aligned within the group */
+    margin-left: 20px;         /* Slight indentation from the left edge */
+  }
+  
+  /* Inputs for text, number, date, time */
+  .form-group input[type="text"],
+  .form-group input[type="number"],
+  .form-group input[type="date"],
+  .form-group input[type="time"] {
+    width: 100%;
+    max-width: 320px;          /* Prevent inputs from stretching too wide */
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    outline: none;
+  }
+  
+  /* Checkbox group - keep things horizontally aligned */
+  .checkbox-group {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: left;
+    width: 100%;
+  }
+  
+  /* The checkbox itself */
+  .checkbox-group input[type="checkbox"] {
+    margin-right: 8px;
+    transform: scale(1.2);
+  }
+  
+  /* Button style */
+  .create-league-form button {
+    display: inline-block;
+    padding: 10px 16px;
+    background-color: #007bff; 
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: background-color 0.3s ease;
+  }
+  
+  .create-league-form button:hover {
+    background-color: #0056b3;
+  }
+  

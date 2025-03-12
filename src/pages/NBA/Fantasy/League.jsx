@@ -228,57 +228,61 @@ const CreateJoinLeague = () => {
         {error && <p style={{ color: "red" }}>{error}</p>}
 
         {/* Create League Form */}
-        <div style={{ marginBottom: "20px" }}>
-          <label>League Name</label>
-          <input
-            type="text"
-            placeholder="League Name"
-            value={leagueName}
-            onChange={(e) => setLeagueName(e.target.value)}
-            style={{ display: "block", margin: "10px 0" }}
-          />
+        <div className="create-league-form">
+          <h2>Create League</h2>
 
-          <label>Number of Teams</label>
-          <input
-            type="number"
-            placeholder="Number of Teams"
-            value={numTeams}
-            onChange={(e) => setNumTeams(parseInt(e.target.value, 10))}
-            style={{ display: "block", margin: "10px 0" }}
-          />
-
-          <label>Draft Date</label>
-          <input
-            type="date"
-            placeholder="Draft Date"
-            value={draftDate}
-            onChange={(e) => setDraftDate(e.target.value)}
-            style={{ display: "block", margin: "10px 0" }}
-          />
-
-          {/* NEW: Draft Time */}
-          <label>Draft Time</label>
-          <input
-            type="time"
-            placeholder="Draft Time"
-            value={draftTime}
-            onChange={(e) => setDraftTime(e.target.value)}
-            style={{ display: "block", margin: "10px 0" }}
-          />
-
-          <label>
+          <div className="form-group">
+            <label>League Name</label>
             <input
-              type="checkbox"
-              checked={isOpen}
-              onChange={(e) => setIsOpen(e.target.checked)}
-              style={{ marginRight: "5px" }}
+              type="text"
+              placeholder="League Name"
+              value={leagueName}
+              onChange={(e) => setLeagueName(e.target.value)}
             />
-            Open League
-          </label>
+          </div>
 
-          <button onClick={handleCreateLeague} style={{ display: "block", marginTop: "10px" }}>
-            Create League
-          </button>
+          <div className="form-group">
+            <label>Number of Teams</label>
+            <input
+              type="number"
+              placeholder="Number of Teams"
+              value={numTeams}
+              onChange={(e) => setNumTeams(parseInt(e.target.value, 10))}
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Draft Date</label>
+            <input
+              type="date"
+              placeholder="Draft Date"
+              value={draftDate}
+              onChange={(e) => setDraftDate(e.target.value)}
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Draft Time</label>
+            <input
+              type="time"
+              placeholder="Draft Time"
+              value={draftTime}
+              onChange={(e) => setDraftTime(e.target.value)}
+            />
+          </div>
+
+          <div className="form-group checkbox-group">
+            <label>
+              <input
+                type="checkbox"
+                checked={isOpen}
+                onChange={(e) => setIsOpen(e.target.checked)}
+              />
+              Open League
+            </label>
+          </div>
+
+          <button onClick={handleCreateLeague}>Create League</button>
         </div>
 
         {/* List of All Leagues */}

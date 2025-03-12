@@ -466,3 +466,337 @@ body {
 
 
 /* ... (existing CSS) */
+/* Remove or rename any global body styles if they conflict with other pages */
+/* .live-g-body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+} */
+
+/* Outer Wrapper */
+.live-g-wrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+  width: 100%;
+  background-color: #ffffff;
+  padding: 0;
+  margin: 0;
+  border-top: 1px solid #ddd; /* Optional for visual separation */
+}
+
+/* Games Row */
+.live-g-row {
+  display: flex;
+  overflow-x: auto; /* Enable horizontal scrolling */
+  overflow-y: hidden; /* Hide vertical scrollbar */
+  width: 100%;
+  padding: 10px 0;
+  scroll-behavior: smooth; /* Smooth scrolling */
+  justify-content: center;
+  align-items: center;
+}
+
+/* Customize scrollbar (Chrome, Safari, Opera) */
+.live-g-row::-webkit-scrollbar {
+  height: 8px;
+}
+
+.live-g-row::-webkit-scrollbar-thumb {
+  background: #007bff;
+  border-radius: 5px;
+}
+
+.live-g-row::-webkit-scrollbar-track {
+  background: #f9f9f9;
+}
+
+/* Game Card */
+.live-g-card-horizontal {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-width: 240px;
+  border-right: 1px solid #ddd;
+  padding: 10px 5px;
+  background-color: #f9f9f9;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.live-g-card-horizontal:last-child {
+  border-right: none;
+}
+
+.live-g-card-horizontal:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Team Row */
+.live-g-team-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 75%;
+}
+
+/* Team Logo */
+.live-g-team-logo {
+  width: 30px;
+  height: 30px;
+  object-fit: cover;
+  margin-right: 10px;
+}
+
+/* Team Abbreviation */
+.live-g-team-abbreviation {
+  font-size: 12px;
+  font-weight: bold;
+  flex-grow: 1;
+  text-align: center;
+}
+
+/* Quarters */
+.live-g-team-quarters {
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Scores */
+.live-g-team-score {
+  font-size: 15px;
+  font-weight: bold;
+  color: #333;
+  display: flex;
+  align-items: center;
+}
+
+/* Arrow Buttons */
+.live-g-arrow-button {
+  background-color: #007bff;
+  color: #ffffff;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: absolute;
+  top: 10%;
+  transform: translateY(-50%);
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  margin-top: 160px;
+}
+
+.live-g-left-arrow {
+  left: 5px;
+}
+
+.live-g-right-arrow {
+  right: 5px;
+}
+
+.live-g-arrow-button:hover {
+  background-color: #0056b3;
+}
+
+/* No Games Message */
+.live-g-no-games-message {
+  font-size: 14px;
+  color: #888;
+  text-align: center;
+  margin-top: 20px;
+}
+
+/* Blink Animation & Red Light */
+@keyframes live-g-blink {
+  0% { opacity: 1; }
+  50% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.live-g-blinking-red-light {
+  width: 10px;
+  height: 10px;
+  background-color: red;
+  border-radius: 50%;
+  animation: live-g-blink 1s infinite;
+  margin-right: auto;
+  margin-left: 10px;
+}
+
+/* Game Status & Time */
+.live-g-game-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.live-g-game-time {
+  font-size: 12px;
+  font-weight: bold;
+  color: #555;
+}
+
+/* Hover Text for Boxscore */
+.live-g-hover-boxscore-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px;
+  font-weight: bold;
+  color: #007bff;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  margin-top: 20px;
+}
+
+.live-g-card-horizontal:hover .live-g-hover-boxscore-text {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Example for a grid layout, if needed */
+.live-g-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+/* Date Dropdown */
+.live-g-date-dropdown {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px 0;
+}
+
+.live-g-date-dropdown label {
+  font-size: 16px;
+  margin-right: 10px;
+}
+
+#date-select {
+  padding: 5px 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+/* Quarter Labels & Scores */
+.live-g-quarters-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  font-size: 12px;
+  color: #333;
+  font-weight: bold;
+  text-align: center;
+  gap: 15px;
+}
+
+.live-g-quarters-scores {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+}
+
+.live-g-quarters-scores span {
+  width: 30px;
+}
+
+/* Comments Section */
+.live-g-comments-section {
+  margin-top: 15px;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.live-g-comment {
+  margin-bottom: 10px;
+  padding: 10px;
+  background-color: #ffffff;
+  border-radius: 6px;
+  border: 1px solid #eee;
+}
+
+.live-g-user {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.live-g-user-pic {
+  width: 30px;
+  height: 30px;
+  margin-right: 10px;
+}
+
+.live-g-user-info span {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.live-g-user-info p {
+  font-size: 12px;
+  color: #666;
+}
+
+.live-g-comment-content {
+  font-size: 14px;
+  color: #333;
+}
+
+.live-g-comment-input {
+  margin-top: 10px;
+}
+
+.live-g-comment-input textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.live-g-comment-input button {
+  margin-top: 8px;
+  padding: 8px 16px;
+  background-color: #007bff;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.live-g-comment-input button:hover {
+  background-color: #0056b3;
+}
+
+.live-g-no-comments-message {
+  font-size: 14px;
+  color: #888;
+  text-align: center;
+  margin-top: 20px;
+}

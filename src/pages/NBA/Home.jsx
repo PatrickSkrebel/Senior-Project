@@ -197,71 +197,87 @@ const NBAHome = () => {
     <div>
       <NBAHeader />
 
-      <div className="live-games-wrapper">
-        <button className="arrow-button left-arrow" onClick={handlePreviousDay}>
-          &#8592;
-        </button>
-        <div className="live-games-row">
-          {liveGames.map((game) => (
-            <div
-              key={game.id}
-              className="game-card-horizontal"
-              onClick={() => handleGameClick(game.id)}
-            >
-              <div className="game-status">
-                {isGameLive(game) && <div className="blinking-red-light"></div>}
-                <div className="game-time">
-                  <p>{formatGameDate(game.date.start)}</p>
-                </div>
-              </div>
-
-              {/* Visitor Team */}
-              <div className="team-row-horizontal">
-                <img
-                  src={game.teams.visitors.logo}
-                  alt={game.teams.visitors.nickname}
-                  className="team-logo"
-                />
-                <span className="team-abbreviation">{game.teams.visitors.code}</span>
-                <div className="team-quarters">
-                  <span>
-                    {game.scores.visitors.linescore[0] || " 0"} |
-                    {game.scores.visitors.linescore[1] || " 0"} |
-                    {game.scores.visitors.linescore[2] || " 0"} |
-                    {game.scores.visitors.linescore[3] || " 0"}
-                  </span>
-                </div>
-                <span className="team-score">{game.scores.visitors.points}</span>
-              </div>
-
-              {/* Home Team */}
-              <div className="team-row-horizontal">
-                <img
-                  src={game.teams.home.logo}
-                  alt={game.teams.home.nickname}
-                  className="team-logo"
-                />
-                <span className="team-abbreviation">{game.teams.home.code}</span>
-                <div className="team-quarters">
-                  <span>
-                    {game.scores.home.linescore[0] || " 0"} |
-                    {game.scores.home.linescore[1] || " 0"} |
-                    {game.scores.home.linescore[2] || " 0"} |
-                    {game.scores.home.linescore[3] || " 0"}
-                  </span>
-                </div>
-                <span className="team-score">{game.scores.home.points}</span>
-              </div>
-
-              {/* Hover Text */}
-              <div className="hover-boxscore-text">Boxscore</div>
-            </div>
-          ))}
+      <div className="live-g-wrapper">
+  <button
+    className="live-g-arrow-button live-g-left-arrow"
+    onClick={handlePreviousDay}
+  >
+    &#8592;
+  </button>
+  <div className="live-g-row">
+    {liveGames.map((game) => (
+      <div
+        key={game.id}
+        className="live-g-card-horizontal"
+        onClick={() => handleGameClick(game.id)}
+      >
+        <div className="live-g-game-status">
+          {isGameLive(game) && (
+            <div className="live-g-blinking-red-light"></div>
+          )}
+          <div className="live-g-game-time">
+            <p>{formatGameDate(game.date.start)}</p>
+          </div>
         </div>
-        <button className="arrow-button right-arrow" onClick={handleNextDay}>
-          &#8594;
-        </button>
+
+        {/* Visitor Team */}
+        <div className="live-g-team-row">
+          <img
+            src={game.teams.visitors.logo}
+            alt={game.teams.visitors.nickname}
+            className="live-g-team-logo"
+          />
+          <span className="live-g-team-abbreviation">
+            {game.teams.visitors.code}
+          </span>
+          <div className="live-g-team-quarters">
+            <span>
+              {game.scores.visitors.linescore[0] || "0"} |
+              {game.scores.visitors.linescore[1] || "0"} |
+              {game.scores.visitors.linescore[2] || "0"} |
+              {game.scores.visitors.linescore[3] || "0"}
+            </span>
+          </div>
+          <span className="live-g-team-score">
+            {game.scores.visitors.points}
+          </span>
+        </div>
+
+        {/* Home Team */}
+        <div className="live-g-team-row">
+          <img
+            src={game.teams.home.logo}
+            alt={game.teams.home.nickname}
+            className="live-g-team-logo"
+          />
+          <span className="live-g-team-abbreviation">
+            {game.teams.home.code}
+          </span>
+          <div className="live-g-team-quarters">
+            <span>
+              {game.scores.home.linescore[0] || "0"} |
+              {game.scores.home.linescore[1] || "0"} |
+              {game.scores.home.linescore[2] || "0"} |
+              {game.scores.home.linescore[3] || "0"}
+            </span>
+          </div>
+          <span className="live-g-team-score">
+            {game.scores.home.points}
+          </span>
+        </div>
+
+        {/* Hover Text */}
+        <div className="live-g-hover-boxscore-text">Boxscore</div>
       </div>
+    ))}
+  </div>
+  <button
+    className="live-g-arrow-button live-g-right-arrow"
+    onClick={handleNextDay}
+  >
+    &#8594;
+  </button>
+</div>
 
       <div className="news-section">
       <h2>NBA Latest News</h2>
