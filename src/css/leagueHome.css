@@ -1,61 +1,130 @@
+/* leagueHome.css */
+
+/* General Styles */
+body {
+  font-family: "Arial", sans-serif;
+  background-color: #f5f5f5;
+  margin: 0;
+  padding: 0;
+}
+
+/* Container */
 .league-home-container {
-    padding: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
+  max-width: 900px;
+  margin: auto;
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Title */
+h1 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+/* Section Titles */
+h2 {
+  margin-top: 20px;
+  color: #444;
+  border-bottom: 2px solid #0073e6;
+  padding-bottom: 5px;
+}
+
+/* Lineup Container */
+.lineup-container {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* Position Columns */
+.position-column {
+  width: 160px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  padding: 10px;
+  text-align: center;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease-in-out;
+}
+
+.position-column h3 {
+  background: #0073e6;
+  color: #fff;
+  padding: 8px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+/* Player List */
+.player-list {
+  min-height: 60px;
+  border: 2px dashed #ccc;
+  padding: 10px;
+  border-radius: 4px;
+  transition: background 0.2s ease-in-out;
+}
+
+.player-list:hover {
+  background: #e0f7fa;
+}
+
+/* Player Item */
+.player-item {
+  padding: 8px;
+  background: #ffffff;
+  border-radius: 4px;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+  cursor: grab;
+  margin-bottom: 5px;
+  transition: transform 0.2s ease-in-out, background 0.2s ease-in-out;
+}
+
+.player-item:hover {
+  background: #e9ecef;
+}
+
+.player-item:active {
+  transform: scale(1.05);
+}
+
+/* Dragging Effect */
+.dragging {
+  background: #ffeb3b;
+  transform: scale(1.08);
+}
+
+/* Flex & Reserves Containers */
+.flex-container,
+.reserves-container {
+  background: #f8f9fa;
+  padding: 10px;
+  border-radius: 6px;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+  margin-top: 10px;
+}
+
+.flex-container h2,
+.reserves-container h2 {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.flex-container .player-list,
+.reserves-container .player-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+@media (max-width: 768px) {
+  .lineup-container {
+    flex-direction: column;
+    align-items: center;
   }
-  
-  .league-home-header {
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  
-  .league-overview,
-  .team-summary,
-  .league-standings,
-  .upcoming-matchups,
-  .recent-activity {
-    margin-bottom: 30px;
-  }
-  
-  .team-summary ul {
-    list-style: none;
-    padding: 0;
-  }
-  
-  .team-summary li {
-    padding: 8px;
-    border: 1px solid #ddd;
-    margin-bottom: 5px;
-    border-radius: 4px;
-  }
-  
-  .league-standings table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  
-  .league-standings th,
-  .league-standings td {
-    padding: 10px;
-    border: 1px solid #ddd;
-    text-align: left;
-  }
-  
-  .navigation {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-  }
-  
-  .navigation button {
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  
-  .navigation button:hover {
-    background-color: #0056b3;
-  }
+}

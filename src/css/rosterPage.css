@@ -1,23 +1,24 @@
-/* General Styling */
-body {
+/* Instead of affecting the global body, create a unique container or wrapper class */
+.roster-page-body {
   font-family: "Arial", sans-serif;
   margin: 0;
   padding: 0;
   background-color: #f8f9fa;
 }
 
-.roster-container {
+/* Main Container */
+.roster-page-container {
   background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   padding: 30px;
   max-width: 1200px;
   margin: auto;
-  animation: fadeIn 0.5s ease-in-out;
+  animation: roster-page-fadeIn 0.5s ease-in-out;
 }
 
 /* Header Banner */
-.header-banner {
+.roster-page-header-banner {
   background-color: #1d428a; /* NBA Blue */
   color: white;
   padding: 20px;
@@ -28,7 +29,7 @@ body {
   justify-content: center;
 }
 
-.header-banner h1 {
+.roster-page-header-banner h1 {
   margin: 0;
   font-size: 2rem;
   display: flex;
@@ -37,14 +38,14 @@ body {
 }
 
 /* Team Logo */
-.team-logo {
+.roster-page-team-logo {
   width: 60px;
   height: auto;
   object-fit: contain;
 }
 
 /* Back Button */
-.back-button {
+.roster-page-back-button {
   display: inline-block;
   margin-bottom: 20px;
   padding: 10px 20px;
@@ -56,13 +57,13 @@ body {
   transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-.back-button:hover {
+.roster-page-back-button:hover {
   background-color: #5a6268;
   transform: translateY(-2px);
 }
 
 /* Player Grid */
-.player-grid {
+.roster-page-player-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 20px;
@@ -70,7 +71,7 @@ body {
 }
 
 /* Player Card */
-.player-card {
+.roster-page-player-card {
   background: white;
   border: 1px solid #ddd;
   border-radius: 10px;
@@ -80,24 +81,24 @@ body {
   text-align: center;
 }
 
-.player-card:hover {
+.roster-page-player-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.player-card h3 {
+.roster-page-player-card h3 {
   font-size: 1.3rem;
   color: #333;
   margin-bottom: 10px;
 }
 
-.player-card p {
+.roster-page-player-card p {
   font-size: 0.9rem;
   color: white;
 }
 
 /* Player Details Link */
-.details-link {
+.roster-page-details-link {
   display: block;
   margin-top: 10px;
   padding: 8px 12px;
@@ -109,29 +110,23 @@ body {
   transition: background-color 0.3s ease;
 }
 
-.details-link:hover {
+.roster-page-details-link:hover {
   background-color: #0056b3;
 }
 
 /* Loading Spinner */
-.loading-spinner {
+.roster-page-loading-spinner {
   border: 4px solid rgba(0, 0, 0, 0.1);
   border-left-color: #007bff;
   border-radius: 50%;
   width: 40px;
   height: 40px;
-  animation: spin 1s linear infinite;
+  animation: roster-page-spin 1s linear infinite;
   margin: 20px auto;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 /* Footer */
-.footer {
+.roster-page-footer {
   margin-top: 40px;
   padding: 20px;
   background-color: #f4f4f4;
@@ -139,51 +134,58 @@ body {
   border-radius: 0 0 10px 10px;
 }
 
-.footer a {
+.roster-page-footer a {
   color: #007bff;
   text-decoration: none;
   font-weight: bold;
 }
 
-.footer a:hover {
+.roster-page-footer a:hover {
   text-decoration: underline;
 }
 
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-  .roster-container {
-    padding: 15px;
-  }
-
-  .header-banner h1 {
-    font-size: 1.8rem;
-    text-align: center;
-    flex-direction: column;
-  }
-
-  .team-logo {
-    width: 50px;
-    margin-bottom: 10px;
-  }
-
-  .player-card {
-    padding: 10px;
-  }
-
-  .player-card h3 {
-    font-size: 1.1rem;
-  }
-
-  .player-card p {
-    font-size: 0.85rem;
+/* Keyframes */
+@keyframes roster-page-spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
-@keyframes fadeIn {
+@keyframes roster-page-fadeIn {
   from {
     opacity: 0;
   }
   to {
     opacity: 1;
+  }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .roster-page-container {
+    padding: 15px;
+  }
+
+  .roster-page-header-banner h1 {
+    font-size: 1.8rem;
+    text-align: center;
+    flex-direction: column;
+  }
+
+  .roster-page-team-logo {
+    width: 50px;
+    margin-bottom: 10px;
+  }
+
+  .roster-page-player-card {
+    padding: 10px;
+  }
+
+  .roster-page-player-card h3 {
+    font-size: 1.1rem;
+  }
+
+  .roster-page-player-card p {
+    font-size: 0.85rem;
   }
 }

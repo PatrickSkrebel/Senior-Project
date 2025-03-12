@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { supabase } from "../../../lib/supabaseClient";
 import NBAHeader from "../../../components/nbaHeader";
 import { useAuth } from "../../../providers/AuthProvider";
@@ -9,13 +9,10 @@ import "../../../css/leagueHome.css";
 const LeagueHome = () => {
   const { leagueId } = useParams();
   const { session } = useAuth();
-  const navigate = useNavigate();
-  const [league, setLeague] = useState(null);
-  const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Lineup state
+  // Roster states
   const [startingLineup, setStartingLineup] = useState({
     PG: null,
     SG: null,
@@ -26,30 +23,27 @@ const LeagueHome = () => {
   const [flex, setFlex] = useState([]);
   const [reserves, setReserves] = useState([]);
 
-  // Fetch data when session or leagueId changes
+  // 1) Fetch the user's drafted players
   useEffect(() => {
-    if (!session || !session.user) return; // Skip if session is not available
+    if (!session) return;
 
     const fetchData = async () => {
       try {
         setLoading(true);
         const { data: draftPicks, error: fetchError } = await supabase
           .from("DraftPicks")
-          .select(
-            `pick_number, round, player_id, 
-             player:Players(id, firstName, lastName, position)`
-          )
+          .select(`pick_number, player:Players(id, firstName, lastName, position)`)
           .eq("league_id", leagueId)
-          .eq("user_id", session.user.id)
-          .order("pick_number", { ascending: true });
+          .eq("user_id", session.user.id);
 
         if (fetchError) throw fetchError;
-        if (!draftPicks || draftPicks.length === 0) throw new Error("No players found.");
+        if (!draftPicks || draftPicks.length === 0) {
+          throw new Error("No players found.");
+        }
 
-        setPlayers(draftPicks);
+        // Assign them to lineup, flex, or reserves
         assignPlayersToLineup(draftPicks);
       } catch (err) {
-        console.error(err);
         setError("Failed to load league data.");
       } finally {
         setLoading(false);
@@ -59,15 +53,15 @@ const LeagueHome = () => {
     fetchData();
   }, [leagueId, session]);
 
-  // Assign players to lineup, flex, and reserves
+  // 2) Assign players to initial sections
   const assignPlayersToLineup = (draftPicks) => {
     const lineup = { PG: null, SG: null, SF: null, PF: null, C: null };
     const flexSpots = [];
-    const bench = [];
 
     draftPicks.forEach((pick) => {
       const { position } = pick.player;
 
+      // Basic logic: fill lineup if empty, else push to flex
       if (position === "G") {
         if (!lineup.PG) lineup.PG = pick;
         else if (!lineup.SG) lineup.SG = pick;
@@ -89,100 +83,107 @@ const LeagueHome = () => {
     });
 
     setStartingLineup(lineup);
+    // For simplicity, take first 3 as flex, the rest as reserves
     setFlex(flexSpots.slice(0, 3));
     setReserves(flexSpots.slice(3));
   };
 
-  // Handle drag-and-drop
+  // 3) Handle the drop event
   const onDragEnd = (result) => {
+    // If dropped outside a droppable, do nothing
     if (!result.destination) return;
+
     const { source, destination } = result;
-
-    // Get source and destination lists
-    const sourceList =
-      source.droppableId === "flex"
-        ? flex
-        : source.droppableId === "reserves"
-        ? reserves
-        : [startingLineup[source.droppableId]];
-    const destinationList =
-      destination.droppableId === "flex"
-        ? flex
-        : destination.droppableId === "reserves"
-        ? reserves
-        : [startingLineup[destination.droppableId]];
-
-    const player = sourceList[source.index];
-
-    // Validate position swap
-    if (destination.droppableId !== "reserves") {
-      const validSwap = validatePosition(destination.droppableId, player);
-      if (!validSwap) return;
+    // If same place & index, do nothing
+    if (
+      source.droppableId === destination.droppableId &&
+      source.index === destination.index
+    ) {
+      return;
     }
 
-    // Remove player from source
-    if (source.droppableId === "flex") {
-      const updatedFlex = [...flex];
-      updatedFlex.splice(source.index, 1);
-      setFlex(updatedFlex);
+    // We'll copy the existing state to new variables
+    const newLineup = { ...startingLineup };
+    const newFlex = [...flex];
+    const newReserves = [...reserves];
+
+    // 3a) Find the dragged item
+    let draggedPlayer = null;
+
+    // Remove from source
+    if (["PG", "SG", "SF", "PF", "C"].includes(source.droppableId)) {
+      draggedPlayer = newLineup[source.droppableId];
+      newLineup[source.droppableId] = null; // Make it empty
+    } else if (source.droppableId === "flex") {
+      draggedPlayer = newFlex[source.index];
+      newFlex.splice(source.index, 1);
     } else if (source.droppableId === "reserves") {
-      const updatedReserves = [...reserves];
-      updatedReserves.splice(source.index, 1);
-      setReserves(updatedReserves);
-    } else {
-      setStartingLineup((prev) => ({ ...prev, [source.droppableId]: null }));
+      draggedPlayer = newReserves[source.index];
+      newReserves.splice(source.index, 1);
     }
 
-    // Add player to destination
-    if (destination.droppableId === "flex") {
-      setFlex([...flex, player]);
+    if (!draggedPlayer) return; // No player found, stop
+
+    // 3b) Add to the destination
+    if (["PG", "SG", "SF", "PF", "C"].includes(destination.droppableId)) {
+      // If there's already someone in that spot, you could do a swap or just overwrite
+      newLineup[destination.droppableId] = draggedPlayer;
+    } else if (destination.droppableId === "flex") {
+      // Insert at the right index or push
+      newFlex.splice(destination.index, 0, draggedPlayer);
     } else if (destination.droppableId === "reserves") {
-      setReserves([...reserves, player]);
-    } else {
-      setStartingLineup((prev) => ({ ...prev, [destination.droppableId]: player }));
+      newReserves.splice(destination.index, 0, draggedPlayer);
     }
+
+    // 3c) Update state
+    setStartingLineup(newLineup);
+    setFlex(newFlex);
+    setReserves(newReserves);
   };
 
-  // Validate player position
-  const validatePosition = (position, player) => {
-    const { position: playerPos } = player.player;
-    if (position === "PG" || position === "SG") return playerPos === "G";
-    if (position === "SF" || position === "PF") return playerPos === "F";
-    if (position === "C") return playerPos === "C" || playerPos === "F-C";
-    return true;
-  };
-
-  // Render loading or error state
+  // 4) Render
   if (loading) return <p>Loading...</p>;
   if (error) return <p>{error}</p>;
-  if (!session || !session.user) return <p>Please log in to access the league.</p>;
 
   return (
     <>
       <NBAHeader />
       <div className="league-home-container">
-        <h1>{league?.leagueName || "League Home"}</h1>
+        <h1>League Home</h1>
 
+        {/* DragDropContext to handle onDragEnd */}
         <DragDropContext onDragEnd={onDragEnd}>
+          {/* ========== STARTING LINEUP ========== */}
           <h2>Starting Lineup</h2>
           <div className="lineup-container">
             {Object.entries(startingLineup).map(([pos, player]) => (
               <Droppable key={pos} droppableId={pos}>
                 {(provided) => (
-                  <div ref={provided.innerRef} {...provided.droppableProps}>
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                    className="position-column"
+                  >
                     <h3>{pos}</h3>
-                    {player && (
-                      <Draggable draggableId={player.player.id} index={0}>
+                    {player ? (
+                      <Draggable
+                        draggableId={String(player.player.id)}
+                        index={0}
+                      >
                         {(provided) => (
                           <div
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
+                            className="player-item"
                           >
-                            {player.player.firstName} {player.player.lastName} ({player.player.position})
+                            {player.player.firstName} {player.player.lastName} (
+                            {player.player.position})
                           </div>
                         )}
                       </Draggable>
+                    ) : (
+                      <p>Empty</p>
                     )}
                     {provided.placeholder}
                   </div>
@@ -191,31 +192,77 @@ const LeagueHome = () => {
             ))}
           </div>
 
+          {/* ========== FLEX ========== */}
           <h2>Flex</h2>
-          <Droppable droppableId="flex">
-            {(provided) => (
-              <div ref={provided.innerRef} {...provided.droppableProps}>
-                {flex.map((player, index) => (
-                  <Draggable key={player.player.id} draggableId={player.player.id} index={index}>
-                    {(provided) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                      >
-                        {player.player.firstName} {player.player.lastName} ({player.player.position})
-                      </div>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
+          <div className="flex-container">
+            <Droppable droppableId="flex">
+              {(provided) => (
+                <div
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                  className="player-list"
+                >
+                  {flex.map((flexPlayer, index) => (
+                    <Draggable
+                      key={String(flexPlayer.player.id)}
+                      draggableId={String(flexPlayer.player.id)}
+                      index={index}
+                    >
+                      {(provided) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          className="player-item"
+                        >
+                          {flexPlayer.player.firstName}{" "}
+                          {flexPlayer.player.lastName} (
+                          {flexPlayer.player.position})
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </div>
 
-
+          {/* ========== RESERVES ========== */}
           <h2>Reserves</h2>
-          
+          <div className="reserves-container">
+            <Droppable droppableId="reserves">
+              {(provided) => (
+                <div
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                  className="player-list"
+                >
+                  {reserves.map((reservePlayer, index) => (
+                    <Draggable
+                      key={String(reservePlayer.player.id)}
+                      draggableId={String(reservePlayer.player.id)}
+                      index={index}
+                    >
+                      {(provided) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          className="player-item"
+                        >
+                          {reservePlayer.player.firstName}{" "}
+                          {reservePlayer.player.lastName} (
+                          {reservePlayer.player.position})
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </div>
         </DragDropContext>
       </div>
     </>
