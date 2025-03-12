@@ -51,7 +51,7 @@ const Roster = () => {
   }, [id]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div className="loading-spinner"></div>;
   }
 
   if (error) {
@@ -66,34 +66,23 @@ const Roster = () => {
     <>
       <NBAHeader />
       <div className="roster-container">
-        <h1>{team.name} Roster</h1>
-        <img src={team.logo} alt={`${team.name} logo`} className="team-logo" />
-        <table className="roster-table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Name</th>
-              <th>Position</th>
-              <th>Birth Date</th>
-              <th>Details</th>
-            </tr>
-          </thead>
-          <tbody>
-            {roster.map((player, index) => (
-              <tr key={player.id}>
-                <td>{index + 1}</td>
-                <td>{player.firstname} {player.lastname}</td>
-                <td>{player.leagues?.standard?.pos || "N/A"}</td>
-                <td>{player.birth.date || "N/A"}</td>
-                <td>
-                  <Link to={`/nba/players/playerstats/${player.id}`} className="details-link">
-                    View Stats
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <Link to="/" className="back-button">
+        Back to Teams
+      </Link>
+      <div className="header-banner">
+        <h1><img src={team.logo} alt={`${team.name} logo`} className="team-logo" />{team.name} Roster</h1>
+      </div>        
+          <div className="player-grid">
+                {roster.map((player, index) => (
+                  <div className="player-card" key={player.id}>
+                    <Link to={`/nba/players/playerstats/${player.id}`} className="details-link">
+                    <h3>{player.firstname} {player.lastname}</h3>
+                    <p><strong>Position:</strong> {player.leagues?.standard?.pos || "N/A"}</p>
+                    <p><strong>Birth Date:</strong> {player.birth.date || "N/A"}</p>
+                    </Link>
+                  </div>
+                ))}
+          </div>
       </div>
     </>
   );
